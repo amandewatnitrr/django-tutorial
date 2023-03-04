@@ -43,5 +43,61 @@
 
 - There are other Python Frameworks as well which include <img src="https://img.shields.io/badge/Flask-000000?style=plastic&logo=Flask&logoColor=white"/>, <img src="https://img.shields.io/badge/CherryPie-000000?style=plastic&logo=CherryPie&logoColor=white"/>, <img src="https://img.shields.io/badge/Web2Py-8DD6F9?style=plastic&logo=WebPack&logoColor=black"/> and <img src="https://img.shields.io/badge/Pyramid-000000?style=plastic&logo=Pyramid&logoColor=white"/>
 
+# Setting up the Environment
+
+- Make sure you have python installed on your desktop. It would be great if you have the latest version installed.
+- In Python, venv or virtalenv helps you handle different Python packages installation for multiple projects. It stands for virtual environment, that lets you create a separate/isolated Python installation, and install different packages on to that virtual installation. It is very handy and easy to use.
+- Using venv, you can easily work with multiple projects with various dependencies on the same machine at the same time.
+- To setup virtual environment or venv on Python, first you will need PIP. It is the widely used packet manager for Python.
+- PIP comes bundled with Python installation.
+- On a Mac, Homebrew makes it easier to install Python along with pip. Simply, 🔥fire up your terminal and enter the following command:
+
+    ```bash
+    >> brew install python
+    ```
+
+- If you already have Python installed on your machine, you can check the version using the following command on you terminal.
+
+    ```bash
+    >> python -V
+    ```
+
+# Creating Virtual Environment
+
+- To create a Virtual Environement, first we need to install some libraries.
+
+  - Move to the folder and run the command
+
+    ```bash
+    >> pip3 install virtualenv
+    ```
+
+    This will install the `virtualenv` library.
+
+- To create a virtual environment, head to your project directory and run the command: `virtualenv venv`.
+- Now, in order to activate this virtaulenv that we created just now use the command follwoing commands.
+
+  ```bash
+  >> env\scripts\activate #for Windows Users
+  >> source venv/bin/activate #for Mac Users
+  ```
+
+- In order to deactivate, the virtualenv that we created use the following command.
+  
+  ```bash
+  >> env\scripts\deactivate #for Windows Users
+  >> deactivate #for Mac Users
+  ```
+
+- When we enter the command `django-admin`, we see a list of commands that we have access to now.
+- We will be taking notes of some of the nessecary commands that we need.
+  - `makemigrations`: This command basically preps our database for migrations.
+  - `migrate`: executes those migration. `migrate` creates those database tables.
+  - `runserver`: This turns on our server.
+  - `startproject`: This is how we create a django project
+  - `startapp`: This creates app.
+
+- Now, in order to create your project switch to `virtualenv` and use the command `django-admin startproject project_name` this will create the project for you.
+
 </p>
 </strong>
