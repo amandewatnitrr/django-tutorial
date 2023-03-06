@@ -62,7 +62,7 @@
     >> python -V
     ```
 
-# Creating Virtual Environment
+## Creating Virtual Environment
 
 - To create a Virtual Environement, first we need to install some libraries.
 
@@ -98,6 +98,58 @@
   - `startapp`: This creates app.
 
 - Now, in order to create your project switch to `virtualenv` and use the command `django-admin startproject project_name` this will create the project for you.
+
+- In order to create a app, within your project use the command `python manage.py startapp app_name`.
+
+## Starting Django Server
+
+- So, first switch to the recent directory that is created by the name you specified.
+- Now, run the command `python manage.py runserver`.
+- And this will make the server running.
+
+## File Structure and there Functioning
+
+- So, the first file we will be talking about is `settings.py`.
+  - This file is basically the main project configuration for entire Django Project.
+  - This is where we configure any app that we add in our middleware.
+  - This is where we configure our templates, set up our database and the connection.
+  - It's basically like command line centre to your project and how your project knows how to work, what to include and so
+
+- The second file we will talk about is `urls.py`.
+  - It is basically the URL navigation for our entire application.
+  - Here we determine what route users goto.
+  - `urlpatterns` is actually a list, this is where we can figure out how a user navigates the website and what happens when thy go to these routes later on. These will be functions that get executed.
+
+- Then, we have `wsgi.py`.
+  - `WSGI` stands for `Web Server Gateway Interface`.
+  - This is the server for django.
+
+- Then, we have `sgi.py`.
+  - `SGI` stands for `Asynchronous Server Gateway Interface`.
+  - This is just another option.
+  - Django does give async support now
+
+## Django Apps
+
+``` Mermaid
+        flowchart TB
+            A{{Website}} ==> B{{Groups App}} -.-> E[DB Models, URL Routing, Templates] --> H[Contains all Database Tables, URL Routing and business logic for groups portion of the website]
+            A[[Website]] ==> C{{MarketPlace App}} -.-> F[DB Models, URL Routing, Templates] --> I[Contains all Database Tables, URL Routing and business logic for MarketPlace feature]
+            A[[Website]] ==> D{{User App}} -.-> G[DB Models, URL Routing, Templates] --> J[Contains all Database Tables, URL Routing and business logic for user accounts]
+```
+
+- So, in our case the project that we created is the website here. Now, the actual functionality in the website sits inside our apps.
+- The Website folder right here or the `test_project` is basically the configuration that's our settings, URLs and servers. And all of this will be inside an app.
+- Typically, a project is made up of multiple apps. We don't need multiple apps but that's the best way to do things.
+- So, let's understand this with an example.
+
+  - Let's say `facebook.com` is a project and let's say we want to build out our user portion. This is where users can login. We store user data, anything that surrounds users. We want to create it's own app called users. So the user app will take care of all the database tables for a user are all routing templates. It contains all database tables, URL Routing's and Business Logic for User Accounts.
+
+  - Facebook Marketplace, if you are familiar with that facebook has an option to buy and sell products in your local city or whatever . So, the marketplace would be into it's own app. So, anything to do with sales transactions, products would be seprated into it's own app.
+
+  - Then we have groups like Facebook Groups. Facebook would typically put that into a group's app. So, that all these files are completely seprated. We don't have to do it but it keeps our code clean becuase ince your project gets to a certain size it can really get messy. So, we seprate everything into apps.
+
+
 
 </p>
 </strong>
