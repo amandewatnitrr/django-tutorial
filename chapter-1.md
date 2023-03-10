@@ -149,7 +149,5 @@
 
   - Then we have groups like Facebook Groups. Facebook would typically put that into a group's app. So, that all these files are completely seprated. We don't have to do it but it keeps our code clean becuase ince your project gets to a certain size it can really get messy. So, we seprate everything into apps.
 
-
-
 </p>
 </strong>
