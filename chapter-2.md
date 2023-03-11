@@ -149,7 +149,10 @@
 
 - With all the changes, we are good to go, but before that let's discuss a little about `Django Template Language`.
 
+# Django Template Language and Jinja <img src="https://img.shields.io/badge/Jinja-B41717?style=plastic&logo=Jinja&logoColor=white"/>
 
+- A Django project can be configured with one or several template engines (or even zero if you don’t use templates). Django ships built-in backends for its own template system, creatively called the Django template language (DTL), and for the popular alternative Jinja2.
+- Jinja is a fast, expressive, extensible templating engine. Special placeholders in the template allow writing code similar to Python syntax. Then the template is passed data to render the final document.
   
 </p>
 </strong>
