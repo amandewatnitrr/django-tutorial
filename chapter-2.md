@@ -5,7 +5,7 @@
 
 ## Views and URLs
 
-``` Mermaid
+```
 flowchart LR
 A{{page}} ==> B[returnPage] ==> C[[page.html]]
 ```
