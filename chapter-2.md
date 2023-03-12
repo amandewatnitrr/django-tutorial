@@ -5,10 +5,10 @@
 
 ## Views and URLs
 
-``` Mermaid
+
 flowchart LR
     A{{page}} ==> B[returnPage] ==> C[[page.html]]
-```
+
 
 - So, in django we will have URL Patterns, we find which path is associated inside of a variable. If, the path doesn't exist and we try hitting that URL that doesn't exist it will return some error.
 - Once, it does find a match, we are going to trigger a function, this function will probably get some kind of template. It will probably query the database, pull back some data and then the user will see this page returned inside of their browser.
