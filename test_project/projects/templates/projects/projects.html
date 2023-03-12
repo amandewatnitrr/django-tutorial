@@ -1,5 +1,27 @@
 {% extends 'main.html' %}
 
 {% block content %}
+
+<hr>
+
 <h5>Projects Template</h5>
+{{ msg }}
+
+{% if number > 10  %}
+    <p>Number is greater than 10.</p>
+{% elif number == 10 %}
+    <p>Number equals 10.</p>
+{% else %}
+    <p>Number is less than 10.</p>
+{% endif %}
+
+<hr>
+
+<ul>
+    {% for project in projects %}
+        <li>Project Title: <a href={% url 'project' project.id %}>{{ project.title }}</a> - {{ project.description }}</li>
+        {# In the line above we are saying that this is a link to /project and a specified project id. #}
+    {% endfor %}
+</ul>
+
 {% endblock content %}
