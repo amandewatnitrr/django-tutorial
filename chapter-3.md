@@ -38,7 +38,37 @@
     ]
     ```
 
-    But that can't be accessed unless and untill we have our database ready. So, if my server is on and we try to visit it, we see something like this. We get the exception message `no such table exists here`. `django_session` is how django authenticates users in this table, but it doesnot exist yet.
+    But that can't be accessed unless and untill we have our database ready. So, if my server is on and we try to visit it, we see something like this. We get the exception message `no such table exists here`. `django_session` is how django authenticates users in this table, but it doesnot exist yet.<br>
+
+    ![](/imgs/Screenshot%202023-03-13%20at%2011.01.03%20AM.png)
+
+    <br>
+
+    So, what we need to do is, we need to run a command and build out these tables. Django already has lot of these tables prepared for us, so it's basically just  going to execute those.
+
+- In order to do so, we execute the command `python3 manage.py migrate`. We have gone through this initially, when we first installed Django and we saw the `makemigrations` command and `migrate` make migrations.
+
+<br>
+
+![](/imgs/Screenshot%202023-03-14%20at%2012.25.01%20AM.png)
+
+<br>
+
+- After executing the command, we can clearly see that there's no warning message appearing anymore. So, if we now visit the admin page `http://127.0.0.1:8000/admin/`. We encounter a login page. Now, so far we have only succeded to access the admin panel, but we are not able to login yet. So, in order to access the admin panel, we need to create a `superuser` using the `createsuperuser` as follows: `python manage.py createsuperuser`.
+
+- As soon as you hit enter, you are asked to provide your `username`, `email-id` and `password`. And the `superuser` is created succesfully. Now, we can actually access the admin panel and by default there are different user permissions that django has for us. If, we use the `createsuperuser` command  that's going to create a user with top-level permission. So, this means we will have admin level access and hecne access it.
+
+<br>
+
+![](/imgs/Screenshot%202023-03-14%20at%2011.04.26%20AM.png)
+
+- So, this is how our admin panel initially looks like. When we executed the `migrate` command, it created this `groups` and `users` table for us. We can see in database when we run the `python manage.py createsuperuser` command. It created the user with given details on the user database. We can actually view this user and modify the information.
+
+![](/imgs/Screenshot%202023-03-14%20at%2011.11.05%20AM.png)
+
+<br>
+
+![](/imgs/Screenshot%202023-03-14%20at%2011.12.59%20AM.png)
 
 </p>
 </storng>
