@@ -168,7 +168,18 @@ class Project(models.Model):
 
 ![](/imgs/Screenshot%202023-03-28%20at%203.18.28%20PM.png)
 
-- From here we can actually update, modify, do what we need here to actually add projects to the database.
+- From here we can actually update, modify, do what we need here to actually add projects to the database. Add when we add them it looks something like this:
+
+![](/imgs/Screenshot%202023-03-28%20at%204.28.57%20PM.png)
+
+- But the new records added to the table appear as project objects here rather than there title, we can do so by adding the following code to the class in `models.py`.
+
+    ```python
+    def __str__(self):
+            return self.title
+    ```
+
+![](/imgs/Screenshot%202023-03-28%20at%204.55.27%20PM.png)
 
 </p>
 </storng>
