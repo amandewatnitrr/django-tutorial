@@ -181,5 +181,72 @@ class Project(models.Model):
 
 ![](/imgs/Screenshot%202023-03-28%20at%204.55.27%20PM.png)
 
+## Database Relationships
+
+- Relationship are simply way of connecting database tables.
+- Let's say, if we were to store data in a table like a user profile, we would want to store our projects in different table. So, that they can be seprated. But at the same time we also need a way of connecting them and we also need a way of defining what relationship is.
+- Mainly, there are 3 types of relationships, we will be working with:
+  - One-to-One: One Table record can relate to one record in another table.
+  - One-to-Many: One Table record can related to many other records in another table.
+  - Many-to-One: Multiple Records in One Table are associated with multiple records in another table.
+
+- Let's undertand this with a simple example. Currently, we have a table called `Projects`, we will have multiple tags connected to multiple projects here, this is a 2-way relationship. So in the database, unlike a many-to-one relationship where we can simply connect tables by a parent ID, what we need here is something called intermediary table.
+- Django does this for us, so that we don't need to worry about creating this table. But once the relationship is created, we're going to have a `Project` table and `tags` table. Now, automatically there is going to be a table created that simply stores the relationship. It's called `Intermediary Table`.
+- So, what this table will do is every time we make this relationship, it would store a record of it.
+- So, let's to this to our porject we further add two more tables `Review` and `Tag`.
+- So, we go to `models.py` inside of `projects` app and add it after `project` class.
+
+  - `models.py`
+
+    ```python
+    class Review(models.Model):
+    VOTE_TYPE = (
+        ('up', 'Up Vote'),
+        ('down', 'Down Vote')
+    )
+    #owner = 
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    body = models.TextField(null = True, blank = True)
+    value = models.CharField(max_length = 200, choices = VOTE_TYPE)
+    created =  models.DateTimeField(auto_now_add=True)
+    id = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True, editable=False)
+
+    def __str__(self):
+        return self.value
+    
+    class Tag(models.Model):
+        name = models.CharField(max_length=255)
+        id = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True, editable=False)
+        created =  models.DateTimeField(auto_now_add=True)
+
+        def __str__(self):
+            return self.name
+    ```
+
+- Now, there might be some doubt that what is `project = models.ForeignKey(Project, on_delete=models.CASCADE)` doing here. This line of code actually relates the reviews to the projects they are associated with and as soon as the project is deleted it's related reviews are also gone, that's what the argument `on_delete = models.CASCADE` does. Here `.ForeignKey` provides many-to-one relation by adding a column to the local model.
+- Once, this is done. We need to create migrations to add these models to the database, so we need to run the command `python3 manage.py makemigrations` and than hit the command `python3 manage.py migrate`.
+- After once the migration is done, we need to make sure if they are visibe on the admin panel. In order to do so, we need to get these tables registered with the admin panel.
+- So, we go to the `admin.py` in the `projects` app and add them as follows and than save it:
+
+  - `admin.py`
+
+    ```python
+    from django.contrib import admin
+    from .models import Project, Review, Tag
+    # Register your models here.
+
+    admin.site.register(Project)
+    admin.site.register(Review)
+    admin.site.register(Tag)
+    ```
+
+- Now we have a proper database with relations created. We can go to the admin page view all of them and would look something like:
+
+![](/imgs/Screenshot%202023-03-31%20at%2012.49.19%20AM.png)
+
+<br>
+
+![](/imgs/Screenshot%202023-03-31%20at%2012.49.39%20AM.png)
+
 </p>
 </storng>
