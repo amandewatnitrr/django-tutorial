@@ -248,5 +248,82 @@ class Project(models.Model):
 
 ![](/imgs/Screenshot%202023-03-31%20at%2012.49.39%20AM.png)
 
+## Database Queries
+
+- Django provides ways based on the model object that we have ways to query the database. What we are typically going to do here, and this is going to be in your `views.py` file, we're actually going to use a terminal for this to start and than we will move to work with `views.py` because that's where we want to call the data.
+
+- So, we're typically going to have some kind of variable that's going to hold a response. So, that's either going to hold a single object or a query set, which is just a list of objects from the database.
+
+    ```python
+        queryset = ModelName.objects.all()
+        # queryset -> Variable that holds the response
+        # ModelName -> Name of the Model we want to query
+        # objects -> Model Objects Attribute
+        # all() -> Method
+    ```
+
+  So, what we are doing here is we are gonna specify the model name and than we're going to access the model object attributes.
+
+  If we wanted to get a single object we will use `.get()` instead of `.all()` here. This would get us a single object based on the attribute and will be stored in the variable. If we use `.all()`, it's just going to return back all the items in the table, but if we do specify an attribute, that it will actually filter down the data and we can add in multiple filter parameters here. `.exclude()` is pretty much the same thing as filter, except for it's inverted. It will exclude anything with that aatribute name.
+
+  ![](./Django-2021-master/resources/Explainer%20Images%20used%20in%20videos/Querysets%20List.png)
+
+- Using `python3 manage.py shell` command, we get acecess to the the database via shell, and it looks something like this:
+
+![](/imgs/Screenshot%202023-04-01%20at%206.22.43%20PM.png)
+
+  This gives us a way to interact with our database.
+
+- From here the first thing we need to do is make the imports:
+
+    ```python
+    from projects.models import Project
+    projects = Project.object.all()
+    print(projects)
+    ```
+
+  ![](/imgs/Screenshot%202023-04-01%20at%208.15.40%20PM.png)
+
+  So, we get a Queryset, containing all the Project Objects in the database.
+
+  What if we wanted a single specific object here, so we do it as:
+
+  ```python
+  projectobj = Project.objects.get(title="Portfolio Website")
+  print(projectobj)
+  ```
+
+  ![](/imgs/Screenshot%202023-04-01%20at%208.23.02%20PM.png)
+
+  Now as, projectobj is a class at the end, so we can acces it's attributes using `.` notation as follows:
+
+  ![](/imgs/Screenshot%202023-04-01%20at%208.28.53%20PM.png)
+
+  If we want to filter out project names starting with `p`, sue the following command:
+
+  ```python
+  p_projects =  Project.objects.filter(title__startswith="p")
+  ```
+
+  ![](/imgs/Screenshot%202023-04-01%20at%208.39.35%20PM.png)
+
+  If we want to filter out project, with vote_total greater than 50:
+
+  ```python
+  projects_vote_gte50 = Project.objects.filter(vote_total__gte=50)
+  ```
+
+  ![](/imgs/Screenshot%202023-04-01%20at%208.43.13%20PM.png)
+
+  If we want to filter out project, with vote_total greater than 50:
+
+  ```python
+  projects_vote_lte50 = Project.objects.filter(vote_total__lte=50)
+  ```
+
+  ![](/imgs/Screenshot%202023-04-01%20at%208.48.28%20PM.png)
+
+
+
 </p>
 </storng>
