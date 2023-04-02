@@ -113,7 +113,7 @@
 
 - And, our output looks something like this:
 
-  ![](/imgs/Screenshot%202023-04-03%20at%201.10.54%20AM.png)
+  ![](/imgs/Screenshot%202023-04-03%20at%201.22.36%20AM.png)
 
 
 </p>
