@@ -105,8 +105,8 @@
 
   class ProjectForm(ModelForm):
       class Meta:
-      model = Project
-      fields = '__all__'
+          model = Project
+          fields = '__all__'
   ```
 
 - But ther are some attributes, which will not be taken into consideration by the form such as `ID` becuase that is not a editable field.
