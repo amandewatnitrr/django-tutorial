@@ -115,6 +115,115 @@
 
   ![](/imgs/Screenshot%202023-04-03%20at%201.22.36%20AM.png)
 
+## Create Read Update Delete (CRUD)
+
+- Till now we have only added forms to our website with `Model Form`, the next thing we need to do is add some CRUD functionality to our website.
+
+### CREATE
+
+- If you have a look on the form template we are sending a POST request and we have the submit button. All we need to do is process the POST request we are getting here.
+- For example, if we fill some values into this form and submit it, we will get a POST request.
+
+  ![](/imgs/Screenshot%202023-04-04%20at%202.13.50%20AM.png)
+
+  ![](/imgs/Screenshot%202023-04-04%20at%202.15.36%20AM.png)
+
+  We can specify an `action` to the `form`, so we can do something here, but for now we keep it as a empty string, which means we are going to send to whatever page we are on. As we want to send it back to same URL, so that's why we have it like that.
+
+  ```Jinja
+  {% extends 'main.html' %}
+
+  {% block content %}
+
+  <form action="" method="POST">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <input type="submit">
+  </form>
+
+  {% endblock %}
+  ```
+
+- In the view we will check what the `METHOD` was, so we update the `views.py` for `projects` app as follows:
+
+  `views.py` - `projects` app
+
+  ```python
+  def createProject(request):
+    form = ProjectForm
+    if request.method == "POST":
+        form = ProjectForm(request.POST)
+        print(request.POST)
+    context = {'form':form}
+    return render(request, "projects/project_form.html", context)
+  ```
+
+  Here, what's actually happening is, if `request.method` equals `POST`, than we will go ahead and process the form. So, we go ahead and specify the form here and instantiate the form class and we are gonna pass in the `POST` data. So, all that data that was sent in comes as a `POST` Request.
+
+  ![](/imgs/Screenshot%202023-04-04%20at%202.13.50%20AM.png)
+
+  Now, when we submit this form, we will see all of the `POST` data when we print `request.POST`.
+
+  ![](/imgs/Screenshot%202023-04-04%20at%205.15.38%20AM.png)
+
+- So, now what we want to do is save the data to the database as a record that we just added in. In order to do that, we will make a small change to the `views.py` in `projects` app.
+
+  `views.py` - `projects` app
+
+  ```python
+  from django.shortcuts import render, redirect 
+  # We added redirect to the import so that we can return to the specified page after submission 
+  from django.http import HttpResponse
+  from .models import Project, Review, Tag
+  from .forms import ProjectForm
+
+
+  def projects(request):
+      # return HttpResponse("Here are our Projects")
+      # The above statement gives the specified Argument as an HTTpResponse.
+      projects = Project.objects.all()
+      context = {"projects": projects}
+      return render(request, "projects/projects.html", context)
+
+  def project(request, pk):
+      projects = Project.objects.all()
+      projectObj = Project.objects.get(id=pk)
+      tags = projectObj.tags.all()
+      context = {"project": projectObj,"tags":tags}
+      return render(request, "projects/single-project.html",context)
+
+  def createProject(request):
+      form = ProjectForm
+      
+      if request.method == "POST":
+          form = ProjectForm(request.POST)
+          if form.is_valid():
+              form.save()
+              print(request.POST)
+              return redirect("projects")
+              # Upon submission, the user will be redirected to "projects" page
+
+      context = {'form':form}
+      return render(request, "projects/project_form.html", context)
+  ```
+
+  So, here what's happening is and this is a cool thing about django that it will check that all the required fields are filled or not, making sure that everythig matches up and checks if everything is valid. Once the form is validated  i.e. `form.is_valid()` returns `true`, the form will save and new object is added to the database. You can see this in the example below:
+
+  ![](/imgs/Screenshot%202023-04-04%20at%205.27.32%20AM.png)
+
+  <br>
+
+  ![](/imgs/Screenshot%202023-04-04%20at%205.28.23%20AM.png)
+    
+  <br>
+
+  ![](/imgs/Screenshot%202023-04-04%20at%205.34.11%20AM.png)
+
+  <br>
+
+  ![](/imgs/Screenshot%202023-04-04%20at%205.47.03%20AM.png)
+
+- So, now we are able to add data into the database now. What happened here is we have the model form (`project_form.html`), that form was rendered out inside of our template. When we submitted it, the form was sent to `views.py`. We sent it with the `POST` request because we were using `POST` method as specified in the template. We check the method and if it's a `POST` method, we created a new instance of that form, we checked if it was valid, if so data was sent into it, we saved it, which creates a user because it's a model form, and at the end we redirect the user.
 
 </p>
 </storng>
