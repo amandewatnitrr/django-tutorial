@@ -30,3 +30,18 @@ def createProject(request):
 
     context = {'form':form}
     return render(request, "projects/project_form.html", context)
+
+def updateProject(request,pk):
+    project = Project.objects.get(id=pk)
+    form = ProjectForm(instance=project)
+    # We are calling a instance of form that is prefilled with the instance of the project we want to edit
+    
+    if request.method == "POST":
+        form = ProjectForm(request.POST,instance=project)
+        if form.is_valid():
+            form.save()
+            print(request.POST)
+            return redirect("projects")
+
+    context = {'form':form}
+    return render(request, "projects/project_form.html", context)

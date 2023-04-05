@@ -225,5 +225,91 @@
 
 - So, now we are able to add data into the database now. What happened here is we have the model form (`project_form.html`), that form was rendered out inside of our template. When we submitted it, the form was sent to `views.py`. We sent it with the `POST` request because we were using `POST` method as specified in the template. We check the method and if it's a `POST` method, we created a new instance of that form, we checked if it was valid, if so data was sent into it, we saved it, which creates a user because it's a model form, and at the end we redirect the user.
 
+### Update
+
+- The Update is mostly similar to `Add/Create`, the only catch being that we have to do it for an existing instance.
+- For this we need to add a new function for updating Project to `views.py` in `projects` app.
+- So, for that we create a new function called `updateProject` for that. For updating the project we need to get an instance of the project we want to update. Again, it will be a `POST` Method. So, the code for that would look something like:
+
+  `views.py` - `projects` app
+
+  ```python
+  # Add this function to views.py in projects app
+
+  def updateProject(request,pk):
+    project = Project.objects.get(id=pk)
+    form = ProjectForm(instance=project)
+    # We are calling a instance of form that is prefilled with the instance of the project we want to edit
+    
+    if request.method == "POST":
+        form = ProjectForm(request.POST,instance=project)
+        if form.is_valid():
+            form.save()
+            print(request.POST)
+            return redirect("projects")
+
+    context = {'form':form}
+    return render(request, "projects/project_form.html", context)
+  ```
+
+  The only difference b/w `Add/Create` and `Update` is we need to pass an instance. So, the instance is going to be project that we want to edit. So, for this one what we have to do is, we pass in a primary key that you are all here. So, we need to grab the project object by grabbing it against it's IDs of the primary. Instead of creating a new form here, we need to render the form which holds the instance project. The model has to match with model form and it will fill all the form fields with that project data.
+
+  Now when we submit it here, we not only pass the `POST` request as attribute, but we also, pass the `instance` attribute with the value of `project`. Than as usual we will validate the project and if validated, that's going to modify the project.
+
+  Now we need to do some minor changes to `urls.py` and `projects.html` template of `projects` app.
+  
+  `urls.py` - `projects` app
+
+  ```python
+  from django.urls import path
+  from . import views
+
+
+  urlpatterns = [
+      path("",views.projects,name="projects"),
+      path("project/<str:pk>/",views.project,name="project"),
+      path("create-project/",views.createProject,name="create-project"),
+      path("update-project/<str:pk>/",views.updateProject,name="update-project")
+  ]
+  ```
+
+  `projects.html` - `/templates/projects` - `projects` app
+
+  ```Jinja
+  {% extends 'main.html' %}
+
+  {% block content %}
+
+  <ul>
+      <table style="border: 1px solid white;border-collapse: collapse;">
+          <tr>
+              <th>Project Title</th>
+              <th>Date Created</th>
+              <th>📝 Edit</th>
+          </tr>
+          {% for project in projects %}
+          <tr>
+              <td><a href={% url 'project' project.id %}>{{ project.title }}</a></td>
+              <td>{{ project.created }}</td>
+              {# In the line above we are saying that this is a link to /project and a specified project id. #}
+              <td><a href="{% url 'update-project' project.id %}">📝</td>
+          </tr>
+          {% endfor %}
+      </table>
+  </ul>
+
+  {% endblock content %}
+  ```
+
+- The Output would look something like this:
+
+  ![](/imgs/Screenshot%202023-04-05%20at%209.05.35%20AM.png)
+
+  And you click on `📝`(Edit) for any of the project, the form containg the values of that project will be rendered, like this:
+
+  ![](/imgs/Screenshot%202023-04-05%20at%209.09.16%20AM.png)
+
+  And now, we can make the changes whatever we wanted to make.
+
 </p>
 </storng>

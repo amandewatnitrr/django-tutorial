@@ -4,22 +4,21 @@
 
 
 <ul>
-    <table>
+    <table style="border: 1px solid white;border-collapse: collapse;">
         <tr>
             <th>Project Title</th>
             <th>Date Created</th>
+            <th>📝 Edit</th>
         </tr>
         {% for project in projects %}
         <tr>
             <td><a href={% url 'project' project.id %}>{{ project.title }}</a></td>
             <td>{{ project.created }}</td>
             {# In the line above we are saying that this is a link to /project and a specified project id. #}
+            <td><a href="{% url 'update-project' project.id %}">📝</td>
         </tr>
         {% endfor %}
     </table>
-    {% for project in projects %}
-        {# In the line above we are saying that this is a link to /project and a specified project id. #}
-    {% endfor %}
 </ul>
 
 {% endblock content %}
