@@ -225,6 +225,8 @@
 
 - So, now we are able to add data into the database now. What happened here is we have the model form (`project_form.html`), that form was rendered out inside of our template. When we submitted it, the form was sent to `views.py`. We sent it with the `POST` request because we were using `POST` method as specified in the template. We check the method and if it's a `POST` method, we created a new instance of that form, we checked if it was valid, if so data was sent into it, we saved it, which creates a user because it's a model form, and at the end we redirect the user.
 
+<hr>
+
 ### Update
 
 - The Update is mostly similar to `Add/Create`, the only catch being that we have to do it for an existing instance.
@@ -310,6 +312,106 @@
   ![](/imgs/Screenshot%202023-04-05%20at%209.09.16%20AM.png)
 
   And now, we can make the changes whatever we wanted to make.
+
+<hr>
+
+### Delete
+
+- So, first of all we need to create a new template, because deleting a record from database is kind of a thing that's reconsiderable, so we first plan to design a confirmation page if we want to delete the record or not.
+- So, first to start with we will be making changes in `views.py`, `urls.py` of `projects` app and will be creating a new template for deleting the object from the database. So, let's start with creating a template:
+
+  `delete_template.html` - `/templates/projects/`
+  ```Jinja
+  {% extends 'main.html' %}
+
+  {% block content %}
+      <form action="" method="POST">
+          {% csrf_token %} 
+          <p>Are you sure, you want to delte the "{{ object }}" </p>
+          <button>
+          <a href="{% url 'projects' %}">
+              Cancel
+          </a>
+          </button>
+          <input type="submit" value="Confirm"/>
+      </form>
+  {% endblock %}
+  ```
+
+  Now, once we have the template ready, create views and urls for the same:
+
+  `views.py` - `projects` app
+
+  ```python
+  # Add this function to views.py in projects app
+
+  def deleteProject(request,pk):
+      project = Project.objects.get(id=pk)
+      if request.method == "POST":
+          project.delete()
+          return redirect("projects")
+      context = {"object":project}
+      return render(request, "projects/delete_template.html", context)
+  ```
+
+  `urls.py` - `projects` app
+
+  ```python
+  from django.urls import path
+  from . import views
+
+
+  urlpatterns = [
+      path("",views.projects,name="projects"),
+      path("project/<str:pk>/",views.project,name="project"),
+      path("create-project/",views.createProject,name="create-project"),
+      path("update-project/<str:pk>/",views.updateProject,name="update-project"),
+      path("delete-project/<str:pk>/",views.deleteProject,name="delete-project")
+  ]
+  ```
+
+  We also need to make a small change to the template `projects.html` for projects app, so as to add a delete option to all the projects.
+
+  `projects.html` - `/template/projects`
+
+  ```python
+  {% extends 'main.html' %}
+
+  {% block content %}
+
+
+  <ul>
+      <table style="border: 1px solid white;border-collapse: collapse;">
+          <tr>
+              <th>Project Title</th>
+              <th>Date Created</th>
+              <th>Edit</th>
+              <th>Delete</th>
+          </tr>
+          {% for project in projects %}
+          <tr>
+              <td><a href={% url 'project' project.id %}>{{ project.title }}</a></td>
+              <td>{{ project.created }}</td>
+              {# In the line above we are saying that this is a link to /project and a specified project id. #}
+              <td><a href="{% url 'update-project' project.id %}">📝</td>
+              <td><a href="{% url 'delete-project' project.id %}">🗑️</td>
+          </tr>
+          {% endfor %}
+      </table>
+  </ul>
+
+  {% endblock content %}
+  ```
+
+- The output now looks something like this:
+
+  ![](/imgs/Screenshot%202023-04-07%20at%201.49.12%20AM.png)
+
+  Now when you click on the trash icon, we see a page like this:
+
+  ![](/imgs/Screenshot%202023-04-07%20at%201.50.07%20AM.png)
+
+  If you cancel, you return back to projects page, and if you confirm, a POST request will be sent to the database and the record related to that associated project will be deleted.
 
 </p>
 </storng>

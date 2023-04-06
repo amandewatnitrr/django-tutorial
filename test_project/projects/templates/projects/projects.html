@@ -8,7 +8,8 @@
         <tr>
             <th>Project Title</th>
             <th>Date Created</th>
-            <th>📝 Edit</th>
+            <th>Edit</th>
+            <th>Delete</th>
         </tr>
         {% for project in projects %}
         <tr>
@@ -16,6 +17,7 @@
             <td>{{ project.created }}</td>
             {# In the line above we are saying that this is a link to /project and a specified project id. #}
             <td><a href="{% url 'update-project' project.id %}">📝</td>
+            <td><a href="{% url 'delete-project' project.id %}">🗑️</td>
         </tr>
         {% endfor %}
     </table>
