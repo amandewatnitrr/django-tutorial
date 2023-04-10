@@ -15,6 +15,11 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.conf import settings
+
+# 👆🏻 we want to have access to the setting.py file over here, because we have to connect to our media route and media url.
+from django.conf.urls.static import static
+# 👆🏻 So, we are importing static, which help us create urls for our static
 
 
 urlpatterns = [
@@ -22,3 +27,5 @@ urlpatterns = [
     path("",include("projects.urls")), 
     # Here we are importing the paths from the projects app that we created, there in we have a file urls.py which has the urls to the views.
 ]
+
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

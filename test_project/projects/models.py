@@ -5,7 +5,8 @@ import uuid
 
 class Project(models.Model):
     title = models.CharField(max_length=200)
-    description = models.TextField(null=True, blank=True) 
+    description = models.TextField(null=True, blank=True)
+    featured_image = models.ImageField(null=True, blank=True,default="default.jpg")
     # Setting the null=true means that it's not nessecary to have a description, it's an optional thing.
     # null by default is always set to false.
     # blank=True again means this field can be empty.
