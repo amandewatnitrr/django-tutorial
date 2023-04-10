@@ -15,8 +15,8 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from django.conf import settings
 
+from django.conf import settings
 # 👆🏻 we want to have access to the setting.py file over here, because we have to connect to our media route and media url.
 from django.conf.urls.static import static
 # 👆🏻 So, we are importing static, which help us create urls for our static
