@@ -27,7 +27,7 @@
   `settings.py`
   
   ```python
-  STATIC_URL = "static/"
+  STATIC_URL = "/static/"
 
   STATICFILES_DIRS = [
       os.path.join(BASE_DIR,"static") # This is a older way of including in files.
@@ -185,11 +185,16 @@
   MEDIA_URL = "/images/"
 
   STATICFILES_DIRS = [
-      os.path.join(BASE_DIR,"static")
+      BASE_DIR / 'static'
   ]
 
   MEDIA_ROOT = os.path.join(BASE_DIR,"static/images")
-  STATIC_ROOT = os.path.join(BASE_DIR, "static")
+  STATIC_ROOT = os.path.join(BASE_DIR,"staticfiles")
+
+  # Default primary key field type
+  # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
+
+  DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
   ```
 
   So, things don't simply end here. In the `urls.py` for the project, we need to add the url path to the `urls.py`. The changes to the file is as follows:
@@ -219,8 +224,9 @@
 
   ```Jinja
   {% extends 'main.html' %}
+
   {% block content %}
-  <img src = "{{ project.featured_image }}"/>
+  <img style="width:100%" src = "{{ project.featured_image.url }}"/>
   <h2>{{ project.title }}</h2>
   <hr>
   {% for tag in tags %}
@@ -231,6 +237,149 @@
 
   {% endblock content %}
   ```
+
+  And this is what it looks like:
+
+  ![](/imgs/Screenshot%202023-04-10%20at%2012.13.57%20PM.png)
+
+  Now, when we have done all the required changes we can see the images for each individual project. The next thing we have to do now here is add a input for the image in the form section. For that we need to make changes to the `forms.py` within the `projets` app.
+
+  `forms.py` - `projects` app
+
+  ```python
+  from django.forms import ModelForm
+  from .models import Project
+
+  # Specifying ModelForm within the argument of the class, specifies that the given class is a Form.
+
+  class ProjectForm(ModelForm):
+      class Meta:
+          model = Project
+          fields = ["title","description","featured_image","demo_link","source_link","tags"]
+  ```
+
+- So, the field is here, but the form will still not process this image yet. In order to make it process, what we need   to do is tell this form to actually submit some form data here or submit some files. So, we need to set `enctype="multipart/form-data"` as follows:
+
+  `project_form.html` - `/templates/projects` - `projects` app
+
+  ```python
+  {% extends 'main.html' %}
+  {% block content %}
+
+  <form action="" method="POST" enctype="multipart/form-data">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <input type="submit">
+  </form>
+
+  {% endblock %}
+  ```
+
+  So, now this form can actually submit that data along with file previously it can't because if we don't have this, and we send it, it's just going to send the orignal fields in that form, But it's not gonna send the files.
+
+  Now, we need to make some small changes in the `views.py` in the `projects` app, in order to get the files processed. We must tell that the `POST` Request that it gets, also contains a file. So, in `views.py` we need to change both `createProject` and `updateProject` as follows:
+
+  `views.py` - `projects` app
+
+  ```python
+  # Updated createProject and updateProject
+
+  def createProject(request):
+    form = ProjectForm
+    
+    if request.method == "POST":
+        form = ProjectForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            print(request.POST)
+            return redirect("projects")
+
+    context = {'form':form}
+    return render(request, "projects/project_form.html", context)
+
+  def updateProject(request,pk):
+      project = Project.objects.get(id=pk)
+      form = ProjectForm(instance=project)
+      # We are calling a instance of form that is prefilled with the instance of the project we want to edit
+      
+      if request.method == "POST":
+          form = ProjectForm(request.POST,request.FILES,instance=project)
+          if form.is_valid():
+              form.save()
+              print(request.POST)
+              return redirect("projects")
+
+      context = {'form':form}
+      return render(request, "projects/project_form.html", context)
+  ```
+
+  So, now if we edit any existing project or add a new project, the image is being processed accordingly.
+
+## Static Files in Production
+
+- So, django typically is not built for serving static files in production. Right now, it's in development, but once we put htis on our server, we need another way of hosting these. So, there's a thrid party library called `Django White Noise`, and this is something we will be using to host static files and then user uploaded content, we are gonna use something like AWS S3 Buckets, but we wanna seprate our static files from our django project.
+
+- So, when we want to put something up for production, we will have to set `DEBUG = FALSE` in `settings.py` for the project, whcih will mean our static files will no longer work anymore.
+
+- What we need to do here is, we are going to need something called `STATIC_ROOT` that we have already set before. `STATIC_ROOT` is kinda like `MEDIA_ROOT` where media defines where user uploaded content is going to go. `STATIC_ROOT` is basically gonna define where our static files in production are going to be.
+
+  We can create the `staticfiles` folder manually, but we don't need to do it. There's a command called `collectstatic` that will do it for us. So, what `collectstatic` is gonna do is take all the files in the `static` along with the subolders and other files in it and it's gonna bundle them up into one file and than django can take care of that from there. So, go ahead and save it.
+
+  ![](/imgs/Screenshot%202023-04-11%20at%2012.53.34%20AM.png)
+
+  So, if we open the terminal and run the command `python3 manage.py collectstatic`, it's gonna bundle up those files and it's gonna create the folder with name `staticfiles` for us and throw all our static files in there. So, let's go ahead and run that. When we ran it, the file with the specified name got created. So, here we can see all the static for the admin panel. So, it basically just duplicated all of these files here.
+
+  ![](/imgs/Screenshot%202023-04-11%20at%2012.54.42%20AM.png)
+
+  So, now our static files are bundled up and we still need a third party package to actually display these. But before that we need to make changes to `urls.py` for the project.
+
+  `urls.py`
+
+  ```python
+  from django.contrib import admin
+  from django.urls import path, include
+
+  from django.conf import settings
+  # 👆🏻 we want to have access to the setting.py file over here, because we have to connect to our media route and media url.
+  from django.conf.urls.static import static
+  # 👆🏻 So, we are importing static, which help us create urls for our static
+
+
+  urlpatterns = [
+      path("admin/", admin.site.urls),
+      path("",include("projects.urls")), 
+      # Here we are importing the paths from the projects app that we created, there in we have a file urls.py which has the urls to the views.
+  ]
+
+  urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+  urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+  ```
+
+  So, that;s our file path, but that's not all we have to do. Django still doesn;t know how to serve this up. Also, we need to update `ALLOWED_HOSTS` in `settings.py` as follows:
+
+  `settings.py`
+  
+  ```python
+  ALLOWED_HOSTS = ['localhost','127.0.0.1']
+  ```
+
+  After, all these changes django is now looking into my static files intead of static folder here. And now we need to install a django thrid party package called `whitenoise`, using the command `pip3 install whitenoise` and add to the `MIDDLEWARE` as follows:
+
+  `settings.py`
+
+  ```python
+  MIDDLEWARE = [
+    "django.middleware.security.SecurityMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware", # Added by user.
+  ]
+  ```
+  And that's all done, if you want to see things in Production mode, don't forget to set `DEBUG = False`.
 
 </p>
 </storng>

@@ -22,7 +22,7 @@ def createProject(request):
     form = ProjectForm
     
     if request.method == "POST":
-        form = ProjectForm(request.POST)
+        form = ProjectForm(request.POST, request.FILES)
         if form.is_valid():
             form.save()
             print(request.POST)
@@ -37,7 +37,7 @@ def updateProject(request,pk):
     # We are calling a instance of form that is prefilled with the instance of the project we want to edit
     
     if request.method == "POST":
-        form = ProjectForm(request.POST,instance=project)
+        form = ProjectForm(request.POST,request.FILES,instance=project)
         if form.is_valid():
             form.save()
             print(request.POST)
