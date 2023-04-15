@@ -379,7 +379,14 @@
     "whitenoise.middleware.WhiteNoiseMiddleware", # Added by user.
   ]
   ```
+
   And that's all done, if you want to see things in Production mode, don't forget to set `DEBUG = False`.
+
+<details><summary>Theme Installation</summary>
+
+[Refer to this Tutorial Video for the same](https://www.udemy.com/share/104Mme/)
+
+</details>
 
 </p>
 </storng>

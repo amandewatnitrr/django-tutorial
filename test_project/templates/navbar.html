@@ -3,9 +3,23 @@
 <!-- Header Section -->
 <header class="header">
     <div class="container container--narrow">
-        <nav class="header__nav">
-            <img class="logo" src = "{% static "images/logo.svg" %}"/>
-            <a href="{% url 'create-project' %}">Add Projects</a>
-        </nav>
+      <a href="{% url 'projects' %}" class="header__logo">
+        <img class="logo" src = "{% static "images/logo.svg" %}"/>
+      </a>
+      <nav class="header__nav">
+        <input type="checkbox" id="responsive-menu" />
+        <label for="responsive-menu" class="toggle-menu">
+          <span>Menu</span>
+          <div class="toggle-menu__lines"></div>
+        </label>
+        <ul class="header__menu">
+          <li class="header__menuItem"><a href="">Developers</a></li>
+          <li class="header__menuItem"><a href="">Projects</a></li>
+          <li class="header__menuItem"><a href="">Inbox</a></li>
+          <li class="header__menuItem"><a href="">My Account</a></li>
+          <li class="header__menuItem"><a href="" class="btn btn--sub">Login/Sign Up</a></li>
+          <li class="header__menuItem"><a href="{% url 'create-project' %}" class="btn btn--sub">Add Projects</a></li>
+        </ul>
+      </nav>
     </div>
-</header>
+  </header>
