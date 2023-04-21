@@ -24,7 +24,8 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("",include("projects.urls")), 
+    path("",include("projects.urls")),
+    path("users/",include("users.urls")), 
     # Here we are importing the paths from the projects app that we created, there in we have a file urls.py which has the urls to the views.
 ]
 
