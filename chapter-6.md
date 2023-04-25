@@ -56,9 +56,14 @@
 
   ```python
     from django.shortcuts import render
+    from .models import Profile
+
+    # Create your views here.
 
     def profiles(request):
-        return render(request, "users/profiles.html",)
+        profiles = Profile.objects.all()
+        context = {"profiles":profiles}
+        return render(request, "users/profiles.html",context)
   ```
 
   `urls.py` - `users` app
@@ -188,6 +193,98 @@
 
   ![](/imgs/Screenshot%202023-04-21%20at%205.41.55%20AM.png)
 
+# Add & Render Profiles
+
+- So, this portion will again be not available as it's more about just copy pasting the template from the resources folder of the Course. But we did make some changes to the `models.py` and other files which we will mention where we made the changes.
+
+  `models.py` - `users` app
+
+  ```python
+    from django.db import models
+    from django.contrib.auth.models import User
+    import uuid
+    # Create your models here.
+
+    class Profile(models.Model):
+        
+        user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
+        # Deleting the Profile will also delete the user associated with it
+
+        name = models.CharField(max_length=200,blank=True,null=True)
+        email = models.EmailField(max_length=500, blank=True,null=True)
+        username = models.CharField(max_length=200, blank=True,null=True)
+        location = models.CharField(max_length=200, blank=True,null=True)
+        short_intro = models.TextField(blank=True,null=True)
+        bio = models.TextField(blank=True,null=True)
+        profile_image = models.ImageField(blank=True,null=True,upload_to="profile-pics/",default="profile-pics/user-default.png")
+
+        social_github = models.URLField(max_length=500,blank=True,null=True)
+        social_twitter = models.URLField(max_length=500,blank=True,null=True)
+        social_linkedin = models.URLField(max_length=500,blank=True,null=True)
+        social_instagram = models.URLField(max_length=500,blank=True,null=True)
+        social_website = models.URLField(max_length=500,blank=True,null=True)
+
+        id = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True, editable=False)
+        created = models.DateTimeField(auto_now_add=True)
+
+        def __str__(self):
+            return str(self.user.username)
+
+    class Skill(models.Model):
+        owner = models.ForeignKey(Profile,null=True,on_delete=models.CASCADE,blank=True)
+        name = models.CharField(max_length=200,blank=True,null=True)
+        description = models.TextField(blank=True,null=True)
+        id = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True, editable=False)
+        created = models.DateTimeField(auto_now_add=True)
+
+
+        def __str__(self):
+            return str(self.name)
+  ```
+
+  Don't forget to exectue `python3 manage.py makemigrations` and `python3 manage.py migrate` command after making this changes. And than register your app.
+
+  `views.py` - `users` app
+
+  ```python
+    from django.shortcuts import render
+    from .models import Profile
+
+    # Create your views here.
+
+    def profiles(request):
+        profiles = Profile.objects.all()
+        context = {"profiles":profiles}
+        return render(request, "users/profiles.html",context)
+
+    def userProfile(request, pk):
+        profile = Profile.objects.get(id=pk)
+        context = {'profile':profile}
+        return render(request, "users/user-profile.html",context)
+  ```
+
+  `urls.py` - `users` app
+
+  ```python
+    from django.urls import path
+    from . import views
+
+    urlpatterns = [
+        path("", views.profiles, name="profiles"),
+        path("profile/<str:pk>/", views.userProfile, name="user-profile"),
+    ]
+  ```
+
+  `admin.py` - `users` app
+
+  ```python
+    from django.contrib import admin
+    from .models import Profile, Skill
+
+    admin.site.register(Profile)
+    admin.site.register(Skill)
+    # Register your models here.
+  ```
 
 </p>
 </storng>

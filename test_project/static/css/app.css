@@ -2,6 +2,10 @@
   --color-sub: #2d2d39;
 }
 
+*{
+  font-family: 'Open Sans', sans-serif !important;
+}
+
 .btn--sub {
   background-color: var(--color-sub-light);
 }
