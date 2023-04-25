@@ -145,7 +145,7 @@
 
   ![](/imgs/Screenshot%202023-04-21%20at%205.20.13%20AM.png)
 
-- The `project` model has one-to-one relation with the `profile`. So, we will add a owner field to the `Project` model, we do it as follows:
+- The `project` model has one-to-one relation with the `profile`. Also, we will add a new table for skills as well. So, we will add a owner field to the `Project` model and `Skill` tables as well, we do it as follows:
 
   `models.py` - `projects` app
 
@@ -200,67 +200,84 @@
   `models.py` - `users` app
 
   ```python
-    from django.db import models
-    from django.contrib.auth.models import User
-    import uuid
-    # Create your models here.
+  from django.db import models
+  from django.contrib.auth.models import User
+  import uuid
+  # Create your models here.
 
-    class Profile(models.Model):
-        
-        user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
-        # Deleting the Profile will also delete the user associated with it
+  class Profile(models.Model):
+      
+      user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
+      # Deleting the Profile will also delete the user associated with it
 
-        name = models.CharField(max_length=200,blank=True,null=True)
-        email = models.EmailField(max_length=500, blank=True,null=True)
-        username = models.CharField(max_length=200, blank=True,null=True)
-        location = models.CharField(max_length=200, blank=True,null=True)
-        short_intro = models.TextField(blank=True,null=True)
-        bio = models.TextField(blank=True,null=True)
-        profile_image = models.ImageField(blank=True,null=True,upload_to="profile-pics/",default="profile-pics/user-default.png")
+      name = models.CharField(max_length=200,blank=True,null=True)
+      email = models.EmailField(max_length=500, blank=True,null=True)
+      username = models.CharField(max_length=200, blank=True,null=True)
+      location = models.CharField(max_length=200, blank=True,null=True)
+      short_intro = models.TextField(blank=True,null=True)
+      bio = models.TextField(blank=True,null=True)
+      profile_image = models.ImageField(blank=True,null=True,upload_to="profile-pics/",default="profile-pics/user-default.png")
 
-        social_github = models.URLField(max_length=500,blank=True,null=True)
-        social_twitter = models.URLField(max_length=500,blank=True,null=True)
-        social_linkedin = models.URLField(max_length=500,blank=True,null=True)
-        social_instagram = models.URLField(max_length=500,blank=True,null=True)
-        social_website = models.URLField(max_length=500,blank=True,null=True)
+      social_github = models.URLField(max_length=500,blank=True,null=True)
+      social_twitter = models.URLField(max_length=500,blank=True,null=True)
+      social_linkedin = models.URLField(max_length=500,blank=True,null=True)
+      social_instagram = models.URLField(max_length=500,blank=True,null=True)
+      social_website = models.URLField(max_length=500,blank=True,null=True)
 
-        id = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True, editable=False)
-        created = models.DateTimeField(auto_now_add=True)
+      id = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True, editable=False)
+      created = models.DateTimeField(auto_now_add=True)
 
-        def __str__(self):
-            return str(self.user.username)
+      def __str__(self):
+          return str(self.user.username)
 
-    class Skill(models.Model):
-        owner = models.ForeignKey(Profile,null=True,on_delete=models.CASCADE,blank=True)
-        name = models.CharField(max_length=200,blank=True,null=True)
-        description = models.TextField(blank=True,null=True)
-        id = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True, editable=False)
-        created = models.DateTimeField(auto_now_add=True)
+  class Skill(models.Model):
+      owner = models.ForeignKey(Profile,null=True,on_delete=models.CASCADE,blank=True)
+      name = models.CharField(max_length=200,blank=True,null=True)
+      description = models.TextField(blank=True,null=True)
+      id = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True, editable=False)
+      created = models.DateTimeField(auto_now_add=True)
 
 
-        def __str__(self):
-            return str(self.name)
+      def __str__(self):
+          return str(self.name)
+
   ```
 
   Don't forget to exectue `python3 manage.py makemigrations` and `python3 manage.py migrate` command after making this changes. And than register your app.
 
+  `admin.py` - `users` app
+
+  ```python
+    from django.contrib import admin
+    from .models import Profile, Skill
+
+    admin.site.register(Profile)
+    admin.site.register(Skill)
+    # Register your models here.
+  ```
+
   `views.py` - `users` app
 
   ```python
-    from django.shortcuts import render
-    from .models import Profile
+  from django.shortcuts import render
+  from .models import Profile
 
-    # Create your views here.
+  # Create your views here.
 
-    def profiles(request):
-        profiles = Profile.objects.all()
-        context = {"profiles":profiles}
-        return render(request, "users/profiles.html",context)
+  def profiles(request):
+      profiles = Profile.objects.all()
+      context = {"profiles":profiles}
+      return render(request, "users/profiles.html",context)
 
-    def userProfile(request, pk):
-        profile = Profile.objects.get(id=pk)
-        context = {'profile':profile}
-        return render(request, "users/user-profile.html",context)
+  def userProfile(request, pk):
+      profile = Profile.objects.get(id=pk)
+
+      topskills = profile.skill_set.exclude(description__exact="")
+      otherskills = profile.skill_set.filter(description="")
+
+      context = {'profile':profile,'topskills':topskills,"otherskills":otherskills}
+      return render(request, "users/user-profile.html",context)
+
   ```
 
   `urls.py` - `users` app
@@ -275,16 +292,7 @@
     ]
   ```
 
-  `admin.py` - `users` app
-
-  ```python
-    from django.contrib import admin
-    from .models import Profile, Skill
-
-    admin.site.register(Profile)
-    admin.site.register(Skill)
-    # Register your models here.
-  ```
+- As said, the template code is already there in repository and it's pretty simple to understand.
 
 </p>
 </storng>
