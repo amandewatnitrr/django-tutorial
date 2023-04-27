@@ -292,7 +292,11 @@
     ]
   ```
 
-- As said, the template code is already there in repository and it's pretty simple to understand.
+- As said, the template code is already there in repository and it's pretty simple to understand. And after, these changes this is how our website looks like:
+
+  ![](/imgs/Screenshot%202023-04-25%20at%204.49.35%20PM.png)
+
+  ![](/imgs/Screenshot%202023-04-25%20at%204.49.46%20PM.png)
 
 </p>
 </storng>
