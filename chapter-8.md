@@ -32,9 +32,6 @@
     {% extends 'main.html' %}
 
     {% block content %}
-
-
-
     <div class="auth">
         <div class="card">
         <div class="auth__header text-center">
