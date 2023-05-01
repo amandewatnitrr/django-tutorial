@@ -30,13 +30,59 @@
 
   ```Jinja
     {% extends 'main.html' %}
+
     {% block content %}
-    <form action="{% url 'login' %}" method="POST">
+
+
+
+    <div class="auth">
+        <div class="card">
+        <div class="auth__header text-center">
+            <a href="/">
+            <img class="logo" src="../../../static/images/icon.svg" alt="icon" />
+            </a>
+            <h3>Account Login</h3>
+            <p>Hello Developer, Welcome Back!</p>
+        </div>
+
+        <form action="{% url 'login' %}" method="POST" class="form auth__form">
         {% csrf_token %}
-        <input type="text" name="username" placeholder="Enter Username"/>
-        <input type="password" name="password" placeholder="Enter Password"/>
-        <input type="submit" name="login"/>
-    </form>
+            <!-- Input:Email -->
+            <div class="form__field">
+            <label for="formInput#text">Username: </label>
+            <input
+                class="input input--text"
+                id="formInput#text"
+                type="text"
+                name="username"
+                placeholder="Enter your username..."
+            />
+            </div>
+
+            <!-- Input:Password -->
+            <div class="form__field">
+            <label for="formInput#password">Password: </label>
+            <input
+                class="input input--password"
+                id="formInput#passowrd"
+                type="password"
+                name="password"
+                placeholder="••••••••"
+            />
+            </div>
+            <div class="auth__actions">
+            <input class="btn btn--sub btn--lg" type="submit" value="Login" />
+            <a href="forgetpassword.html">Forget Password?</a>
+            </div>
+        </form>
+        <div class="auth__alternative">
+            <p>Don’t have an Account?</p>
+            <a href="signup.html">Sign Up</a>
+        </div>
+        </div>
+    </div>
+    </body>
+
     {% endblock content %}
   ```
 
@@ -268,6 +314,8 @@
   Let's first discuss about `loginUser`. So, if the user is authenticated, the user is redirected to the `profiles` page. If not so, than we move to the next step, where we first check if the username entered in the form exist in the database or notusing `try & except`. If the `username` is not present in the database, the error message is shown if the username is not present. If the `username` is present in the database, we go ahead to the next step to `authenticate` where we pass the arguments `username` and `password`. If the, user is None, this means that the password enter is not for the given username, or the password entered is incorrect. If everything goes fine, the `login` function redirects user to `profiles` page.
 
   Now, with the `logoutUser`, we just need to send call `logout` function, passing the request as the parameter and the user is logged out.
+  
+  We now add the urls for the `loginUser` and `logoutUser` finally.
 
   `urls.py` - `users` app
 
@@ -283,8 +331,6 @@
         path("profile/<str:pk>/", views.userProfile, name="user-profile"),
     ]
   ```
-
-  We now add the urls for the `loginUser` and `logoutUser` finally.
 
 </p>
 </storng>
