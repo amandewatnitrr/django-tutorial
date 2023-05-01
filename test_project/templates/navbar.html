@@ -4,7 +4,7 @@
 <header class="header">
     <div class="container container--narrow">
       <a href="{% url 'projects' %}" class="header__logo">
-        <img style="margin-right:20rem;" class="logo" src = "{% static "images/logo.svg" %}"/>
+        <img  class="logo" src = "{% static "images/logo.svg" %}"/>
       </a>
       <nav class="header__nav">
         <input type="checkbox" id="responsive-menu" />
@@ -15,10 +15,15 @@
         <ul class="header__menu">
           <li class="header__menuItem"><a href="{% url "profiles" %}">Developers</a></li>
           <li class="header__menuItem"><a href="{% url "projects" %}">Projects</a></li>
+
+          {% if request.user.is_authenticated %}
           <li class="header__menuItem"><a href="">Inbox</a></li>
           <li class="header__menuItem"><a href="">My Account</a></li>
-          <li class="header__menuItem"><a href="" class="btn btn--sub">Login/Sign Up</a></li>
           <li class="header__menuItem"><a href="{% url 'create-project' %}" class="btn btn--sub">Add Projects</a></li>
+          <li class="header__menuItem"><a href="{% url 'logout' %}" class="btn btn--sub"><i class="fa-regular fa-right-from-bracket"></i> Logout</a></li>
+          {% else %}
+          <li class="header__menuItem"><a href="{% url 'login' %}" class="btn btn--sub">Login/SignUp</a></li>
+          {% endif %}
         </ul>
       </nav>
     </div>
