@@ -329,5 +329,9 @@
     ]
   ```
 
+# User Registration
+
+- So, now when we have out login form ready, the next thing we are gonna build is the SigUp Page or the User Registration Form.
+
 </p>
 </storng>

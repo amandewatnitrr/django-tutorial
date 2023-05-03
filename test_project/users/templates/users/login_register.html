@@ -3,7 +3,17 @@
 {% block content %}
 
 
+{% if page == 'signup' %}
+<br>
 
+<form method="POST" action="{% url 'signup' %}">
+{% csrf_token %}
+{{form.as_p}}
+<input type="submit" value="signup" />
+</form>
+
+<br>
+{% else %}
 <div class="auth">
     <div class="card">
       <div class="auth__header text-center">
@@ -46,10 +56,10 @@
       </form>
       <div class="auth__alternative">
         <p>Don’t have an Account?</p>
-        <a href="signup.html">Sign Up</a>
+        <a href="{% url 'signup' %}">Sign Up</a>
       </div>
     </div>
   </div>
-</body>
+{% endif %}
 
 {% endblock content %}
