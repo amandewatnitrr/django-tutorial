@@ -55,6 +55,7 @@ def signupUser(request):
             user.save()
             messages.success(request,"User Account Created")
 
+            login(request, user)
             return redirect("profiles")
 
     context = {'page':page,'form':form}
