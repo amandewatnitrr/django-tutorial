@@ -615,5 +615,11 @@
 
     Now, once the nessecary templates and `views.py` are ready, last thing we need to update is `urls.py`, o that we can start seeing the actual stuff. We add the `signupUser` views to the urls and that's all said and done.
 
+    And, now this is how our `Sign In` and `Sign Up` page looks like.
+
+    ![](./imgs/Screenshot%202023-05-05%20at%208.07.35%20AM.png)
+    <br>
+    ![](./imgs/Screenshot%202023-05-05%20at%208.07.47%20AM.png)
+
 </p>
 </storng>
