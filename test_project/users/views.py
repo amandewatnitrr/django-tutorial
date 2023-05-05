@@ -2,7 +2,7 @@ from django.shortcuts import redirect, render
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.contrib.auth.forms import UserCreationForm
+from .forms import CustomUserCreationForm
 from django.contrib.auth.models import User
 from .models import Profile
 
@@ -44,9 +44,9 @@ def logoutUser(request):
 
 def signupUser(request):
     page = 'signup'
-    form = UserCreationForm()
+    form = CustomUserCreationForm()
     if request.method == "POST":
-        form = UserCreationForm(request.POST)
+        form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             print("User Creation Initiated..")
             user = form.save(commit=False) # Here we hold a single instance of the form
@@ -54,6 +54,8 @@ def signupUser(request):
             print(user)
             user.save()
             messages.success(request,"User Account Created")
+
+            return redirect("profiles")
 
     context = {'page':page,'form':form}
     return render(request, "users/login_register.html", context)
