@@ -332,6 +332,288 @@
 # User Registration
 
 - So, now when we have out login form ready, the next thing we are gonna build is the SigUp Page or the User Registration Form.
+- We will first create a template for the signup and than move ahead to make some minor changes for the flash messages in the `main.html` in the `root` templates folder later.
+
+    `login_register.html` - `users` app
+
+    ```Jinja
+    {% extends 'main.html' %}
+    {% load static %}
+    {% block content %}
+
+    {% if page == 'signup' %}
+
+    <br><br><br>
+    <div class="auth">
+        <div class="card">
+            <div class="auth__header text-center">
+                <a href="/">
+                    <img src="{% static 'images/icon.svg' %}" alt="icon" />
+                </a>
+                <h3>Register an Account</h3>
+                <p>Create a new developer account</p>
+            </div>
+
+            <form method="POST" action="{% url 'signup' %}" class="form auth__form">
+                {% csrf_token %}
+
+                {% for field in form %}
+                <div class="form__field">
+                    <label for="formInput#text">{{field.label}}</label>
+                    {{field}}
+
+                    <!-- {% if field.help_text %}
+                    <small>{{field.help_text}}</small>
+                    {% endif %} -->
+
+                    {% for error in field.errors %}
+                    <p style="color: red;">{{error}}</p>
+                    {% endfor %}
+
+                </div>
+
+                {% endfor %}
+
+                <div class="auth__actions">
+                    <input class="btn btn--sub btn--lg" type="submit" value="Sign  In" />
+                </div>
+            </form>
+            <div class="auth__alternative">
+                <p>Already have an Account?</p>
+                <a href="{% url 'login' %}">Log In</a>
+            </div>
+        </div>
+    </div>
+
+    <br><br><br>    
+
+    {% else %}
+
+    <div class="auth">
+
+        <div class="card">
+
+            <div class="auth__header text-center">
+                <a href="/">
+                    <img src="{% static 'images/icon.svg' %}" alt="icon" />
+                </a>
+                <h3>Account Login</h3>
+                <p>Hello Developer, Welcome Back!</p>
+            </div>
+
+            <form action="" method="POST" class="form auth__form">
+                {% csrf_token %}
+                <!-- Input:Username -->
+                <div class="form__field">
+                    <label for="formInput#text">Username: </label>
+                    <input class="input input--text" id="formInput#text" type="text" name="username"
+                        placeholder="Enter your username..." />
+                </div>
+
+                <!-- Input:Password -->
+                <div class="form__field">
+                    <label for="formInput#password">Password: </label>
+                    <input class="input input--password" id="formInput#passowrd" type="password" name="password"
+                        placeholder="••••••••" />
+                </div>
+
+                <div class="auth__actions">
+                    <input class="btn btn--sub btn--lg" type="submit" value="Log In" />
+
+                </div>
+            </form>
+
+            <div class="auth__alternative">
+                <p>Don’t have an Account?</p>
+                <a href="{% url 'signup' %}">Sign Up</a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    {% endblock content %}
+    ```
+
+    `main.html` - `root` templates
+
+    ```Jinja
+    <!DOCTYPE html>
+    {% load static %}
+    <html>
+
+    <head>
+        <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="images/favicon.ico" type="image/x-icon" />
+    <!-- Mumble UI -->
+    <link rel="stylesheet" href="{% static 'uikit/styles/uikit.css' %}" />
+    <!-- Dev Search UI -->
+    <link rel="stylesheet" href="{% static 'css/app.css' %}" />
+    <!-- Font Awesome Icons -->
+    <script src="https://kit.fontawesome.com/c79118cca6.js" crossorigin="anonymous"></script>
+    <link href="{% static 'fontawesomefree/css/fontawesome.css' %}" rel="stylesheet" type="text/css">
+    <link href="{% static 'fontawesomefree/css/brands.css' %}" rel="stylesheet" type="text/css">
+    <link href="{% static 'fontawesomefree/css/solid.css' %}" rel="stylesheet" type="text/css">
+
+    <title>DevSearch - Connect with Developers!</title>
+
+    </head>
+
+    <body>
+        {% include 'navbar.html' %}
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert  alert--{{message.tags}}">
+                    <p class="alert__message">{{message}}</p>
+                    <button class="alert__close">x</button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        {% block content %}
+        {% endblock content %}
+        <hr>
+        <p>FOOTER</p>
+    </body>
+    <script src="{% static 'uikit/app.js' %}"></script>
+    <script src="{% static 'js/main.js' %}"></script>
+
+    </html>
+    ```
+
+    So, now when we have the templates ready, let's move on to working with views, urls and forms. So, first wew will create a `forms.py` files for User Signup, this will will contain the details of the form of what all fields user needs to fill at the time of signup.
+
+    `forms.py` - `users` app
+
+    ```python
+    from django.forms import ModelForm
+    from django.contrib.auth.forms import UserCreationForm
+    from django.contrib.auth.models import User
+
+    class CustomUserCreationForm(UserCreationForm):
+        class Meta:
+            model = User
+            fields = ['first_name','email','username','password1','password2']
+            labels = {
+                "first_name":"Name",
+            }
+
+        def __init__(self, *args, **kwargs):
+            super(CustomUserCreationForm, self).__init__(*args, **kwargs)
+
+            for name, field in self.fields.items():
+                field.widget.attrs.update({"class":"input"})
+    ```
+
+    This is very much similar to what we have done for the `forms.py` of the `projects` app. We define the fields of the form and assign the class to them for adding styling.
+
+    Next, we need to do the most important thing, creating the views and urls for the User SignUp.
+
+    `views.py` - `users` app
+
+    ```python
+    from django.shortcuts import redirect, render
+    from django.contrib.auth import login, authenticate, logout
+    from django.contrib.auth.decorators import login_required
+    from django.contrib import messages
+    from .forms import CustomUserCreationForm
+    from django.contrib.auth.models import User
+    from .models import Profile
+
+    # Create your views here.
+
+    def loginUser(request):
+        page = 'login'
+        context = {'page':page}
+        if request.user.is_authenticated:
+            return redirect("profiles")
+
+        if request.method == "POST":
+            username = request.POST["username"]
+            password = request.POST["password"]
+
+            try:
+                user = User.objects.get(username=username)
+                # Checking if the username with given username exists in database orr not
+
+            except:
+                messages.error(request,"Username not found")
+
+            user = authenticate(request, username=username, password=password)
+            # The above command checks if the credentials given for the existing user is correct or not.
+
+            if user is not None:
+                login(request, user)
+                return redirect('profiles')
+            else:
+                messages.error(request,"Username or Password Incorrect...")
+
+        return render(request, "users/login_register.html",context)
+
+
+    def logoutUser(request):
+        logout(request)
+        messages.success(request,"User Logged Out...")
+        return redirect("login")
+
+    def signupUser(request):
+        page = 'signup'
+        form = CustomUserCreationForm()
+        if request.method == "POST":
+            form = CustomUserCreationForm(request.POST)
+            if form.is_valid():
+                print("User Creation Initiated..")
+                user = form.save(commit=False) # Here we hold a single instance of the form
+                user.username = user.username.lower()
+                print(user)
+                user.save()
+                messages.success(request,"User Account Created")
+
+                login(request, user)
+                return redirect("profiles")
+
+        context = {'page':page,'form':form}
+        return render(request, "users/login_register.html", context)
+
+
+    def profiles(request):
+        profiles = Profile.objects.all()
+        context = {"profiles":profiles}
+        return render(request, "users/profiles.html",context)
+
+    def userProfile(request, pk):
+        profile = Profile.objects.get(id=pk)
+
+        topskills = profile.skill_set.exclude(description__exact="")
+        otherskills = profile.skill_set.filter(description="")
+
+        context = {'profile':profile,'topskills':topskills,"otherskills":otherskills}
+        return render(request, "users/user-profile.html",context)
+
+    ```
+
+    In this file, we have add a new function `signupUser` that is views for signup page. It has a variable called `page` that holdes a string value, if the string value is `signup` than the signup page will be rendered, and if not the `login` page will be rendered. We than create a instance of our `CustomUserCreationForm`. Now, if the METHOD is a `POST` METHOD, we create a instance of the `CustomUserCreationForm` in variable `form` with the values given by the user. We check if the form is valid or not, if valid than and than assign it to `user` variable as `user = form.save(commit=False)`. This will create an instance of the model with the give data that is not added to the database yet. Finally, the user is saved and logged in and redirected to the `profiles` page.
+
+    `urls.py` - `users` app
+
+    ```python
+    from django.urls import path
+    from . import views
+
+    urlpatterns = [
+        path("login/", views.loginUser, name="login"),
+        path("logout/", views.logoutUser, name="logout"),
+        path("signup/", views.signupUser, name="signup"),
+
+        path("", views.profiles, name="profiles"),
+        path("profile/<str:pk>/", views.userProfile, name="user-profile"),
+    ]
+    ```
+
+    Now, once the nessecary templates and `views.py` are ready, last thing we need to update is `urls.py`, o that we can start seeing the actual stuff. We add the `signupUser` views to the urls and that's all said and done.
 
 </p>
 </storng>
