@@ -18,7 +18,7 @@
 
           {% if request.user.is_authenticated %}
           <li class="header__menuItem"><a href="">Inbox</a></li>
-          <li class="header__menuItem"><a href="">My Account</a></li>
+          <li class="header__menuItem"><a href="{% url 'account' %}">My Account</a></li>
           <li class="header__menuItem"><a href="{% url 'create-project' %}" class="btn btn--sub">Add Projects</a></li>
           <li class="header__menuItem"><a href="{% url 'logout' %}" class="btn btn--sub"><i class="fa-regular fa-right-from-bracket"></i> Logout</a></li>
           {% else %}

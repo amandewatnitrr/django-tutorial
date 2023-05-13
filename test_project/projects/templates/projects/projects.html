@@ -39,11 +39,6 @@
                         <span style="font-weight: bold;">{{ project.vote_ratio }}%</span> Postitive
                         Feedback ({{ project.vote_total }} Vote{{ project.vote_total|pluralize:"s" }})
                       </p>
-
-                      <p class="project--edit" style="margin-bottom:1rem">
-                        <a href="{% url 'update-project' project.id %}"><button class="btn btn--sub--outline btn--sm" style="margin-right:1rem">Edit</button>
-                        <a href="{% url 'delete-project' project.id %}"><button class="btn btn--main--outline btn--sm" style="margin-right:1rem">Delete</button>
-                      </p>
                       
                       <div class="project__tags">
                         {% for tag in project.tags.all %}
