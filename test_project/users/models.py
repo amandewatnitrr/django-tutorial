@@ -16,11 +16,11 @@ class Profile(models.Model):
     bio = models.TextField(blank=True,null=True)
     profile_image = models.ImageField(blank=True,null=True,upload_to="profile-pics/",default="profile-pics/user-default.png")
 
-    social_github = models.URLField(max_length=500,blank=True,null=True)
-    social_twitter = models.URLField(max_length=500,blank=True,null=True)
-    social_linkedin = models.URLField(max_length=500,blank=True,null=True)
-    social_instagram = models.URLField(max_length=500,blank=True,null=True)
-    social_website = models.URLField(max_length=500,blank=True,null=True)
+    social_github = models.CharField(max_length=500,blank=True,null=True)
+    social_twitter = models.CharField(max_length=500,blank=True,null=True)
+    social_linkedin = models.CharField(max_length=500,blank=True,null=True)
+    social_instagram = models.CharField(max_length=500,blank=True,null=True)
+    social_website = models.CharField(max_length=500,blank=True,null=True)
 
     id = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True, editable=False)
     created = models.DateTimeField(auto_now_add=True)
