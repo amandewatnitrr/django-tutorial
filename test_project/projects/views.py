@@ -1,15 +1,17 @@
 from django.shortcuts import render, redirect
+from django.db.models import Q
 from django.http import HttpResponse
 from .models import Project, Review, Tag
 from django.contrib.auth.decorators import login_required
 from .forms import ProjectForm
+from .utils import searchProjects
 
 
 def projects(request):
     # return HttpResponse("Here are our Projects")
     # The above statement gives the specified Argument as an HTTpResponse.
-    projects = Project.objects.all()
-    context = {"projects": projects}
+    projects, search_query = searchProjects(request)
+    context = {"projects": projects, 'search_query': search_query}
     return render(request, "projects/projects.html", context)
 
 def project(request, pk):
