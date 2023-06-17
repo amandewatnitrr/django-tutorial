@@ -57,23 +57,8 @@
             </div>
           </div>
         </section>
-
-        {% if projects.has_other_pages %}
-        <div class="pagination">
-          <ul class="container">
-            {% if projects.has_previous %}
-            <li><a href="?page={{projects.previous_page_number}}" class="btn btn--disabled">&#10094; Prev</a></li>
-            {% endif %}
-            {% for page in range %}
-            <li><a href="?page={{page}}" class="btn page-link">{{ page }}</a></li>
-            {% endfor %}
-            {% if projects.has_next %}
-            <li><a href="?page={{projects.next_page_number}}" class="btn btn--disabled">Next &#10095;</a></li>
-            {% endif %}
-          </ul>
-        </div>
-        {% endif %}
-    
+        
+        {% include 'pagination.html' with queryset=projects custom_range=custom_range %}
         
       </main>
 

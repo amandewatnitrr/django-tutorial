@@ -196,11 +196,11 @@
     `utils.py` - `projects` app
 
     ```python
+    # Add this function to utils.py
     from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
     def paginateProjects(request, projects, results):
 
         page = request.GET.get("page")
-        results = 3
         paginator = Paginator(projects, results)
 
         try:
@@ -244,6 +244,224 @@
         return render(request, "projects/projects.html", context)
     ```
 
-    And, everything works fine. But, here comes a li'l important part now.
+    And, everything works fine. But, here comes a li'l important part now. Now we got to make a template for the paginator, that we can use whereever we want directly. In order to that let's make some changes to the templates. So, firstly, we create a new template in the `root` templates folder `pagination.html`.
+
+    `pagination.html` - `templates` root
+
+    ```Jinja
+    {% if queryset.has_other_pages %}
+    <div class="pagination">
+        <ul class="container">
+        {% if queryset.has_previous %}
+        <li><a href="?page={{queryset.previous_page_number}}" class="btn btn--disabled">&#10094; Prev</a></li>
+        {% endif %}
+        {% for page in range %}
+        <li><a href="?page={{page}}" class="btn page-link">{{ page }}</a></li>
+        {% endfor %}
+        {% if queryset.has_next %}
+        <li><a href="?page={{queryset.next_page_number}}" class="btn btn--disabled">Next &#10095;</a></li>
+        {% endif %}
+        </ul>
+    </div>
+    {% endif %}
+    ```
+
+    So, what we are doing here is, firstly we check if the query coming has more than 1 page, if so we show the pagination buttons. THan we have condition for the appearance of previous and next buttons, if it's the 1st page of the paginator, than the previous button is not supposed to be printed, similarly if it is the last page, the next button is not supposed to be shown.
+
+    Between these 2 if statements, we have a for loop for showing the paginator buttons within `range` variable. Range has a custom range between `leftIndex` and `rightIndex`. This you can clearly see in the `utils.py` file for both `users` and `projects` app.
+
+    Edit the `profiles.html` template in `users` app and `projects.html` template in `projects` app as follows:
+
+    `profiles.html` - `templates` - `users` app
+
+    ```Jinja
+    {% extends 'main.html' %}
+    <!-- Main Section -->
+
+    {% block content %}
+    <main class="home">
+        <section class="hero-section text-center">
+        <div class="container container--narrow">
+            <div class="hero-section__box">
+            <h2>CONNECT WITH <span>DEVELOPERS</span></h2>
+            <h2>FROM AROUND THE WORLD</h2>
+            </div>
+
+            <div class="hero-section__search">
+            <form class="form" action="{% url "profiles" %}" method="get">
+                <div class="form__field">
+                <label for="formInput#search">Search Developers </label>
+                <input class="input input--text" id="formInput#search" type="text" name="search_query"
+                    value="{{search_query}}"" placeholder="Search by developer name" />
+                </div>
+
+                <input class="btn btn--sub btn--lg" type="submit" value="Search" />
+            </form>
+            </div>
+        </div>
+        </section>
+        <!-- Search Result: DevList -->
+        <section class="devlist">
+        <div class="container">
+            <div class="grid grid--three">
+                {% for profile in profiles %}
+                <div class="column card">
+                <div class="dev">
+                <a href="{% url 'user-profile' profile.id %}" class="card__body">
+                    <div class="dev__profile">
+                    <img class="avatar avatar--md" src="{{ profile.profile_image.url }}" alt="image" />
+                    <div class="dev__meta">
+                        <h3>{{ profile.name }}</h3>
+                        <h5>{{ profile.short_intro }}</h5>
+                    </div>
+                    </div>
+                    <p class="dev__info">
+                    {{ profile.bio | slice:"500" }}
+                    </p>
+                    
+                    <div class="dev__skills">
+                    {% for skill in profile.skill_set.all|slice:"5" %}
+                    <span class="tag tag--pill tag--main">
+                        <small>{{ skill }}</small>
+                    </span>
+                    {% endfor %}
+                    </div>
+                </a>
+                
+                </div>
+            </div>
+            {% endfor %}
+            </div>
+            
+        </section>
+
+        {% include 'pagination.html' with queryset=profiles custom_range=custom_range %}
+
+    </main>
+    {% endblock %}
+    ```
+
+    `projects.html` - `templates` - `projects` app
+
+    ```Jinja
+    {% extends 'main.html' %}
+
+    {% block content %}
+
+        <main class="projects">
+            <section class="hero-section text-center">
+            <div class="container container--narrow">
+                <div class="hero-section__box">
+                <h2>Search for <span>Projects</span></h2>
+                </div>
+        
+                <div class="hero-section__search">
+                <form class="form" action="{% url 'projects'  %}" method="get">
+                    <div class="form__field">
+                    <label for="formInput#search">Search By Projects </label>
+                    <input class="input input--text" id="formInput#search" type="text" name="search_query"
+                        placeholder="Search by Project Title" value={{search_query}} />
+                    </div>
+        
+                    <input class="btn btn--sub btn--lg" type="submit" value="Search" />
+                </form>
+                </div>
+            </div>
+            </section>
+            <!-- Search Result: DevList -->
+            <section class="projectsList">
+            <div class="container">
+                <div class="grid grid--three">
+
+                {% for project in projects %}
+                <div class="column">
+                    <div class="card project">
+                    <a href={% url 'project' project.id %} class="project">
+                        <img class="project__thumbnail" src="{{ project.featured_image.url }}" alt="project thumbnail" />
+                        <div class="card__body">
+                        <h3 class="project__title"><a href={% url 'project' project.id %}>{{ project.title }}</a></h3>
+                        <p><a class="project__author" href={% url 'user-profile' project.owner.id %}>By {{ project.owner.name }}</a></p>
+                        <p class="project--rating">
+                            <span style="font-weight: bold;">{{ project.vote_ratio }}%</span> Postitive
+                            Feedback ({{ project.vote_total }} Vote{{ project.vote_total|pluralize:"s" }})
+                        </p>
+                        
+                        <div class="project__tags">
+                            {% for tag in project.tags.all %}
+                            <span class="tag tag--pill tag--main">
+                            <small>{{ tag }}</small>
+                            </span>
+                            {% endfor %}
+                        </div>
+                        </div>
+                    </a>
+                    </div>
+                </div>
+                {% endfor %}
+        
+        
+                </div>
+            </div>
+            </section>
+            
+            {% include 'pagination.html' with queryset=projects custom_range=custom_range %}
+            
+        </main>
+
+    {% endblock content %}
+    ```
+
+    Now, the last thing we need to edit is the `utils.py` and `views.py` for the users app.
+
+    `utils.py` - `users` app
+
+    ```python
+    # Add this function to the utils.py
+    from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
+    def paginateProfiles(request, profiles, results):
+
+        page = request.GET.get("page")
+        paginator = Paginator(profiles, results)
+
+        try:
+            profiles = paginator.page(page)
+        
+        except PageNotAnInteger:
+            page = 1
+            profiles = paginator.page(page)
+
+        except EmptyPage:
+            page = paginator.num_pages
+            profiles = paginator.page(page)
+
+        leftIndex =  int(page) - 4
+        rightIndex = int(page) + 5
+
+        if leftIndex < 1:
+            leftIndex = 1
+        
+        if rightIndex > paginator.num_pages:
+            rightIndex = paginator.num_pages + 1
+
+        custom_range = range(leftIndex,rightIndex)
+
+        return custom_range, profiles
+    ```
+
+    `views.py` - `users` app
+
+    ```python
+    def profiles(request):
+        profiles, search_query = searchProfiles(request) 
+        custom_range, profiles =  paginateProfiles(request, profiles, 3)
+        context = {"profiles":profiles,'search_query':search_query,'range':custom_range}
+        return render(request, "users/profiles.html",context)
+    ```
+
+# Search and Pagination Issue Fix
+
+- So, there's still something we are not over with yet. We have still a bug to fix remaining. I don't know if you guys observed, but when you make a search. The Search results are presented and that's for sure, but what if the number of search results, are just not possible to be displayed on one page and it goes to the other page of the paginator. So, here when you move to the other page, to see the more of results, the `search_query` is lost, and basically the search and the pagination are just not synced up.
+
+- So, now it's time to sneak up and find a solution for the same.
 
 </p>
