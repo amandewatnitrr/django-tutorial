@@ -464,4 +464,260 @@
 
 - So, now it's time to sneak up and find a solution for the same.
 
+- For that let's go to `pagination.html` in the `root` templates folder, and `projects.html` in `projects` app. For now, we will be keeping the Javascript here itself, but later on once you have understood the concept how it works, we will move it to, it's own seprate folder.
+
+- Following is the change we need to do in the `pagination.html` file in `root` `templates` directory.
+
+    `pagination.html` - `templates` - `root`
+
+    ```Jinja
+    {% if queryset.has_other_pages %}
+    <div class="pagination">
+        <ul class="container">
+        {% if queryset.has_previous %}
+        <li><a href="?page={{queryset.previous_page_number}}" class="btn btn--disabled">&#10094; Prev</a></li>
+        {% endif %}
+        {% for page in range %}
+        <li><a href="?page={{page}}" class="btn page-link">{{ page }}</a></li>
+        {% endfor %}
+        {% if queryset.has_next %}
+        <li><a href="?page={{queryset.next_page_number}}" class="btn btn--disabled">Next &#10095;</a></li>
+        {% endif %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <script type="text/javascript">
+        // Get SearchForm and Page links
+        let searchform =  document.getElementById('searchForm')
+        let pagelinks = document.getElementsByClassName('page-link')
+
+        // Make sure that the search form actually exists
+        if(searchform){
+
+            for (let i=0;pagelinks.length > i;i++)
+                {
+                    pagelinks[i].addEventListener('click', (e) =>{
+                        e.preventDefault()
+                        console.log("Button Clicked")
+                    }) 
+                }
+
+        }
+    </script>
+    ```
+
+    Now what we wanna do is loop through every single item and add an eventHandler. So all the pageLinks we are gonna have in eventHandler, basically allow us to do something when tht page item is clicked on.
+
+    Once you test this code you will find that the page, isn't changing as per the pagination, and in the console, and we will find rather "Button clicked" being printed on the cosnole as follows:
+
+    ![](/imgs/Screenshot%202023-07-04%20at%2012.59.31%20AM.png)
+
+    So, you might be curious why isn't the page chaniging, it's because we have avoided the default event from happening using `e.preventDefault()`. From here, what we are gonna do is get thhe current page of each click. So, we are gonna handle this with Javascript.
+
+    For this purpose we are gonna add a custom attribute into `a href` page button as follows and edit the `script` section as follows:
+
+    `pagination.html` - `templates` - `root`
+
+    ```Jinja
+    
+    {% if queryset.has_other_pages %}
+        <div class="pagination">
+            <ul class="container">
+            {% if queryset.has_previous %}
+            <li><a href="?page={{queryset.previous_page_number}}" class="btn btn--disabled" data-page="{{queryset.previous_page_number}}">&#10094; Prev</a></li>
+            {% endif %}
+
+            {% for page in range %}
+                {% if page == queryset.number %}
+                    <li><a href="?page={{page}}" class="btn page-link btn--sub" data-page="{{page}}">{{ page }}</a></li>
+                {% else %}
+                    <li><a href="?page={{page}}" class="btn page-link" data-page="{{page}}">{{ page }}</a></li>
+                {% endif %}
+            {% endfor %}
+
+            {% if queryset.has_next %}
+            <li><a href="?page={{queryset.next_page_number}}" class="btn btn--disabled" data-page="{{queryset.next_page_number}}">Next &#10095;</a></li>
+            {% endif %}
+
+            </ul>
+        </div>
+    {% endif %}
+    ```
+
+    ```Javascript
+
+    <script type="text/javascript">
+        // Get SearchForm and Page links
+        let searchform =  document.getElementById('searchForm')
+        let pagelinks = document.getElementsByClassName('page-link')
+
+        // Make sure that the search form actually exists
+        if(searchform){
+
+               /*
+                * Now what we wanna do is loop through every single item and add an eventHandler.
+                * So all the pageLinks we are gonna have in eventHandler, basically allow us to do something 
+                * when tht page item is clicked on.  
+                */
+
+            for (let i=0;pagelinks.length > i;i++)
+                {
+                    pagelinks[i].addEventListener('click', function (e){
+                        e.preventDefault()
+                        
+                        // Get the Data Attribute
+                        let page = this.dataset.page
+                        console.log("Page: ",page)
+                    }) 
+                }
+
+            /*
+            * Once you test this code you will find that the page, isn't changing as per the pagination, and in the console
+            * and we will find rather "Button clicked" being printed on the cosnole.
+            */
+
+        }
+    </script>
+    ```
+
+    So, now if you pay a closer attention to the attributes of the page links we have added a custom attribute by the name `data-page`, where `page` is the variable name here, and we fetch it using the Javascript. And, it looks something like this.
+
+    ![](/imgs/Screenshot%202023-07-04%20at%208.52.40%20PM.png)
+
+    Now, we are gonna add the hidden search input to the form. And, finish what we started.
+
+    `pagination.html` - `templates` - `root`
+
+    ```Jinja
+    {% if queryset.has_other_pages %}
+    <div class="pagination">
+        <ul class="container">
+        {% if queryset.has_previous %}
+        <li><a href="?page={{queryset.previous_page_number}}" class="btn btn--disabled" data-page="{{queryset.previous_page_number}}">&#10094; Prev</a></li>
+        {% endif %}
+
+    {% for page in range %}
+        {% if page == queryset.number %}
+            <li><a href="?page={{page}}" class="btn page-link btn--sub" data-page="{{page}}">{{ page }}</a></li>
+        {% else %}
+            <li><a href="?page={{page}}" class="btn page-link" data-page="{{page}}">{{ page }}</a></li>
+        {% endif %}
+    {% endfor %}
+
+    {% if queryset.has_next %}
+    <li><a href="?page={{queryset.next_page_number}}" class="btn btn--disabled" data-page="{{queryset.next_page_number}}">Next &#10095;</a></li>
+    {% endif %}
+
+    </ul>
+    </div>
+    {% endif %}
+
+    ```
+
+    ```Javascript
+
+    <script type="text/javascript">
+        // Get SearchForm and Page links
+        let searchform =  document.getElementById('searchForm')
+        let pagelinks = document.getElementsByClassName('page-link')
+
+        // Make sure that the search form actually exists
+        if(searchform){
+
+            /*
+                * Now what we wanna do is loop through every single item and add an eventHandler.
+                * So all the pageLinks we are gonna have in eventHandler, basically allow us to do something 
+                * when tht page item is clicked on.  
+                */
+
+            for (let i=0;pagelinks.length > i;i++)
+                {
+                    pagelinks[i].addEventListener('click', function (e){
+                        e.preventDefault()
+                        
+                        // Get the Data Attribute
+                        let page = this.dataset.page
+                        
+                        // Add hidden search input to the form
+                        searchform.innerHTML += `<input value=${page} name="page" hidden/>`
+
+                        // Submit Form
+                        searchform.submit()
+                    }) 
+                }
+
+            /*
+            * Once you test this code you will find that the page, isn't changing as per the pagination, and in the console
+            * and we will find rather "Button clicked" being printed on the cosnole.
+            */
+
+        }
+    </script>
+    ```
+
+    As a result, now when we move to the other page of the pagination after the search the search query still remains there.
+
+    ![](/imgs/Screenshot%202023-07-04%20at%208.59.52%20PM.png)
+
+    Now, the last thing we gotta do is clean the mess, that we created, by seprating the Javascript. So, inside the `static` folder, create a file `main.js` and copy the Javascript over there, and save it.
+
+    Now got to `main.html` in `root` `templates` and edit as follows:
+
+    `main.html` - `root` - `templates`
+
+    ```Jinja
+    <!DOCTYPE html>
+    {% load static %}
+    <html>
+
+    <head>
+        <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="images/favicon.ico" type="image/x-icon" />
+    <!-- Mumble UI -->
+    <link rel="stylesheet" href="{% static 'uikit/styles/uikit.css' %}" />
+    <!-- Dev Search UI -->
+    <link rel="stylesheet" href="{% static 'css/app.css' %}" />
+    <!-- Font Awesome Icons -->
+    <script src="https://kit.fontawesome.com/c79118cca6.js" crossorigin="anonymous"></script>
+    <link href="{% static 'fontawesomefree/css/fontawesome.css' %}" rel="stylesheet" type="text/css">
+    <link href="{% static 'fontawesomefree/css/brands.css' %}" rel="stylesheet" type="text/css">
+    <link href="{% static 'fontawesomefree/css/solid.css' %}" rel="stylesheet" type="text/css">
+
+    <title>DevSearch - Connect with Developers!</title>
+
+    </head>
+
+    <body>
+        {% include 'navbar.html' %}
+        {% if messages %}
+
+        {% for message in messages %}
+        <div class="alert  alert--{{message.tags}}">
+            <p class="alert__message">{{message}}</p>
+            <button class="alert__close">x</button>
+        </div>
+
+        {% endfor %}
+
+        {% endif %}
+
+
+        {% block content %}
+
+        {% endblock content %}
+        <hr>
+    </body>
+    <script src="{% static 'uikit/app.js' %}"></script>
+    <script src="{% static 'js/main.js' %}"></script>
+
+    </html>
+    ```
+
+    And tada.. it's done.
+
 </p>
