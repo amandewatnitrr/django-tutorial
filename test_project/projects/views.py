@@ -3,7 +3,8 @@ from django.db.models import Q
 from django.http import HttpResponse
 from .models import Project, Review, Tag
 from django.contrib.auth.decorators import login_required
-from .forms import ProjectForm
+from django.contrib import messages
+from .forms import ProjectForm, ReviewForm
 from .utils import searchProjects, paginateProjects
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 
@@ -22,7 +23,20 @@ def project(request, pk):
     projects = Project.objects.all()
     projectObj = Project.objects.get(id=pk)
     tags = projectObj.tags.all()
-    context = {"project": projectObj,"tags":tags}
+    form = ReviewForm()
+    context = {"project": projectObj,"tags":tags,"form":form}
+
+    if request.method == "POST":
+        form = ReviewForm(request.POST)
+        review = form.save(commit=False)
+        review.project = projectObj
+        review.owner = request.user.profile
+        review.save()
+
+        # Update vote_count and vote_ratio
+        messages.success(request,"Your review has succesfully been submitted.")
+        return redirect('project', pk=projectObj.id)
+
     return render(request, "projects/single-project.html",context)
 
 @login_required(login_url="login")

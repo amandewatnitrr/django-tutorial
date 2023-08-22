@@ -1,5 +1,5 @@
 from django.forms import ModelForm
-from .models import Project
+from .models import Project, Review
 from django import forms
 
 # Specifying ModelForm within the argument of the class, specifies that the given class is a Form.
@@ -21,3 +21,20 @@ class ProjectForm(ModelForm):
         self.fields["tags"].widget.attrs.update({'class':'input--checkbox'})
         self.fields["demo_link"].widget.attrs.update({'class':'input','placeholder':'Add Demo Link'})
         self.fields["source_link"].widget.attrs.update({'class':'input','placeholder':'Add Source Link'})
+
+
+class ReviewForm(ModelForm):
+    class Meta:
+        model = Review
+        fields = ['value','body']
+
+        labels = {
+            'value':"Put your vote",
+            'body':"Add a Comment with your vote"
+        }
+
+    def __init__(self, *args, **kwargs):
+        super(ReviewForm, self).__init__(*args, **kwargs)
+
+        for name,field in self.fields.items():
+            field.widget.attrs.update({"class":'input'})
