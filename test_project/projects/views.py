@@ -34,6 +34,7 @@ def project(request, pk):
         review.save()
 
         # Update vote_count and vote_ratio
+        projectObj.getVoteCount
         messages.success(request,"Your review has succesfully been submitted.")
         return redirect('project', pk=projectObj.id)
 
