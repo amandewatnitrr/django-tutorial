@@ -380,7 +380,7 @@
 
     And it's done, now we can access this form within the `single-project.html` template inside the `projects` app.
 
-    `single-project.html` - `projects` app
+    `single-project.html` -  `templates` - `projects` app
 
     ```Jinja
     {% extends 'main.html' %}
@@ -887,7 +887,7 @@
 
     Make the changes mentioned below to `single-project.html` template in `projects` app.
 
-    `single-project.html` - `projects` app
+    `single-project.html` - `templates` - `projects` app
 
     ```Jinja
     {% extends 'main.html' %}
@@ -983,7 +983,7 @@
 
     Also, we had an issue so, far that we had been facing that our search bar for projects had a "/" appraring all the time, even when no search is made, it's because of a minor bug that we just resolved by making a small change to `projects.html` inside `projects` app.
 
-    `projects.html` - `projects` app
+    `projects.html` - `templates` - `projects` app
 
     ```Jinja
     {% extends 'main.html' %}
@@ -1212,4 +1212,380 @@
     ```
 
     And, we are done with the `reviews`.
+
+# Messages 
+
+- For, this there's nothing to do with the projects app. So, we are not gonna touch it anyway. We will be dealing completely with the `users` app, for this. So, first let's move onto the `models.py` of `users` app, to make some changes. So, we start by making a new class `Message` here. Now, talking about `Message`, it's pretty obvious to guess 2 of the common attributes to expect here. First one, the `sender` and, other one the `receiver`. In order to do this add the `message` class model as shown below:
+
+    `models.py` - `users` app
+
+    ```python
+    class Message(models.Model):
+        sender = models.ForeignKey(Profile, on_delete=models.SET_NULL, null=True)
+        # null here is set to true, cause a person with no account on the platform might also send a message to the person.
+        reciever = models.ForeignKey(Profile, on_delete=models.SET_NULL, null=True, related_name="messages")
+
+        name = models.CharField(max_length=200, null=True ,blank=True)
+        email = models.EmailField(max_length=200, null=True ,blank=True)
+        subject = models.CharField(max_length=200, null=True ,blank=True)
+        body = models.TextField()
+        is_read = models.BooleanField(default=False, null=True)
+        id = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True, editable=False)
+        created = models.DateTimeField(auto_now_add=True)
+
+        def __str__(self):
+            return self.subject
+        
+        # To order the messages by default. So, that when a user opens the inbox, they should first see the unread message.
+        class Meta:
+            ordering = ['is_read','-created']
+            # Any message that is not read will be at the top and, the most recently created ones will also be at the top.
+    ```
+
+- Most of the things for the `reciever` and the `sender` is almost the same, except the fact that we add an extra attribute `related_name` to the receiver cause the recipient connection to the profile is going to interfere with our sender.
+  
+  - So, now what happens is when we go to the profile to access the profiles messages instead of doing something like `Profile.message_set`, we will just be able to directly write messages. So, this is how `Profile` model is going to connect to this. So, we need to add this to one of these atleast, because if we don't, then it will not allow us to have a connection to the profile modeltwice.
+  
+- Once, this is done and saved. The next thing we are going to do is, `makemigrationgs` and `migrate`. And, this should apply the migrations. Now, I want to register this with the admin panel. For this we will create a few messages, manually here. For this we need to make changes to the `admin.py` for the `users` app.
+
+    `admin.py` - `users` app
+
+    ```python
+    from django.contrib import admin
+    from .models import Profile, Skill, Message
+
+    admin.site.register(Profile)
+    admin.site.register(Skill)
+    admin.site.register(Message)
+    # Register your models here.
+    ```
+
+- So, now if you go back to the admin panel, we can see a message section clearly visible.
+
+    ![](/imgs/Screenshot%202023-09-17%20at%204.42.41%20AM.png)
+
+- So, before we start screating message or sending messages we want to have a template for our messages. For this we need to add the `inbox.html` template in `users` app. And, than make changes to `views.py` and `urls.py` file for `users` app.
+
+    `views.py` - `users` app
+
+    ```python
+
+    # Add this function to the `views.py` in `users` app.
+
+    @login_required(login_url="login")
+    def inbox(request):
+        context = {}
+        return render(request,"users/inbox.html", context)
+    ```
+
+    `urls.py` - `users` app
+
+    ```python
+    from django.urls import path
+    from . import views
+
+    urlpatterns = [
+        path("login/", views.loginUser, name="login"),
+        path("logout/", views.logoutUser, name="logout"),
+        path("signup/", views.signupUser, name="signup"),
+
+        path("", views.profiles, name="profiles"),
+        path("profile/<str:pk>/", views.userProfile, name="user-profile"),
+        
+        path("account/", views.userAccount, name="account"),
+        path("edit-account/", views.editAccount, name="edit-account"),
+
+        path("add-skill/",views.addSkill, name="add-skill"),
+        path("update-skill/<str:pk>/",views.updateSkill, name="update-skill"),
+        path("delete-skill/<str:pk>/",views.deleteSkill, name="delete-skill"),
+
+        path("inbox/",views.inbox,name="inbox"),
+    ]
+    ```
+
+    So, now we have the URL Path and we have view in the template. And, now we can render this out. To, render this out we go into our navigation bar in the `root` directory `template` folder, and make the following changes.
+
+    `navbar.html` - `templates` -`root`
+
+    ```python
+    {% load static %}
+    <!-- Header Section -->
+    <header class="header">
+        <div class="container container--narrow">
+        <a href="{% url 'projects' %}" class="header__logo">
+            <img  class="logo" src = "{% static "images/logo.svg" %}"/>
+        </a>
+        <nav class="header__nav">
+            <input type="checkbox" id="responsive-menu" />
+            <label for="responsive-menu" class="toggle-menu">
+            <span>Menu</span>
+            <div class="toggle-menu__lines"></div>
+            </label>
+            <ul class="header__menu">
+            <li class="header__menuItem"><a href="{% url "profiles" %}">Developers</a></li>
+            <li class="header__menuItem"><a href="{% url "projects" %}">Projects</a></li>
+
+            {% if request.user.is_authenticated %}
+            <li class="header__menuItem"><a href="{% url 'inbox' %}">Inbox</a></li>
+            <li class="header__menuItem"><a href="{% url 'account' %}">My Account</a></li>
+            <li class="header__menuItem"><a href="{% url 'create-project' %}" class="btn btn--sub">Add Projects</a></li>
+            <li class="header__menuItem"><a href="{% url 'logout' %}" class="btn btn--sub"><i class="fa-regular fa-right-from-bracket"></i> Logout</a></li>
+            {% else %}
+            <li class="header__menuItem"><a href="{% url 'login' %}" class="btn btn--sub">Login/SignUp</a></li>
+            {% endif %}
+            </ul>
+        </nav>
+        </div>
+    </header>
+    ```
+
+    ![](/imgs/Screenshot%202023-09-17%20at%205.00.08%20AM.png)
+
+    And, this is what we see, cause we haven't implemented any styling and all for this yet. So, we need to open up the template and fix a few things over here.
+
+    `inbox.html` - `templates` - `users` app
+
+    ```Jinja
+    {% extends 'main.html' %}
+
+    {% block content %}
+    <!-- Main Section -->
+    <main class="inbox my-xl">
+    <div class="content-box">
+        <h3 class="inbox__title">New Messages(<span>2</span>)</h3>
+        <ul class="messages">
+        <li class="message message--unread">
+            <a href="message.html">
+            <span class="message__author">Dennis Ivanov</span>
+            <span class="message__subject">Working Opportunity for Web Design Company</span>
+            <span class="message__date">May 31, 2021, 04:37 PM</span>
+            </a>
+        </li>
+        <li class="message message--unread">
+            <a href="message.html">
+            <span class="message__author">Md. Shahriar Parvez</span>
+            <span class="message__subject">Up for a Freelancing Project?</span>
+            <span class="message__date">May 30, 2021, 07:47 PM</span>
+            </a>
+        </li>
+        <li class="message">
+            <a href="message.html">
+            <span class="message__author">Sulamita Ivanov</span>
+            <span class="message__subject">Another Opportunity for Side Income</span>
+            <span class="message__date">May 29, 2021, 09:45 AM</span>
+            </a>
+        </li>
+        </ul>
+    </div>
+    </main>
+    {% endblock content %}
+
+    ```
+
+    And, this is what you would see.
+
+    ![](/imgs/Screenshot%202023-09-17%20at%205.07.09%20AM.png)
+
+    Now, when we have rendered the static template for the messages succesfully. Let' move to the admin panel and, add some actual messages. Once, we are done adding up these mesages to the database, move back to the `inbox.html` - `templates` in `users` app and `views.py` - `users` app to make some nessecary changes.
+
+    `views.py` - `users` app
+
+    ```python
+    from django.shortcuts import redirect, render
+    from django.contrib.auth import login, authenticate, logout
+    from django.contrib.auth.decorators import login_required
+    from django.contrib import messages
+    from .forms import CustomUserCreationForm, ProfileForm, SkillForm
+    from django.contrib.auth.models import User
+    from .models import Profile, Message
+    from .utils import searchProfiles, paginateProfiles
+
+    # Create your views here.
+
+    def loginUser(request):
+        page = 'login'
+        context = {'page':page}
+        if request.user.is_authenticated:
+            return redirect("profiles")
+
+        if request.method == "POST":
+            username = request.POST["username"].lower()
+            password = request.POST["password"]
+
+            try:
+                user = User.objects.get(username=username)
+                # Checking if the username with given username exists in database orr not
+
+            except:
+                messages.error(request,"Username not found")
+
+            user = authenticate(request, username=username, password=password)
+            # The above command checks if the credentials given for the existing user is correct or not.
+
+            if user is not None:
+                login(request, user)
+                return redirect(request.GET['next'] if 'next' in request.GET else 'account')
+            else:
+                messages.error(request,"Username or Password Incorrect...")
+
+        return render(request, "users/login_register.html",context)
+
+
+    def logoutUser(request):
+        logout(request)
+        messages.success(request,"User Logged Out...")
+        return redirect("login")
+
+    def signupUser(request):
+        page = 'signup'
+        form = CustomUserCreationForm()
+        if request.method == "POST":
+            form = CustomUserCreationForm(request.POST)
+            if form.is_valid():
+                print("User Creation Initiated..")
+                user = form.save(commit=False) # Here we hold a single instance of the form
+                user.username = user.username.lower()
+                print(user)
+                user.save()
+                messages.success(request,"User Account Created")
+
+                login(request, user)
+                return redirect("edit-account")
+
+        context = {'page':page,'form':form}
+        return render(request, "users/login_register.html", context)
+
+
+    def profiles(request):
+        profiles, search_query = searchProfiles(request) 
+        custom_range, profiles =  paginateProfiles(request, profiles, 3)
+        context = {"profiles":profiles,'search_query':search_query,'range':custom_range}
+        return render(request, "users/profiles.html",context)
+
+    def userProfile(request, pk):
+        profile = Profile.objects.get(id=pk)
+
+        topskills = profile.skill_set.exclude(description__exact="")
+        otherskills = profile.skill_set.filter(description="")
+
+        context = {'profile':profile,'topskills':topskills,"otherskills":otherskills}
+        return render(request, "users/user-profile.html",context)
+
+    @login_required(login_url="login")
+    def userAccount(request):
+        profile = request.user.profile
+        skills = profile.skill_set.all().order_by('-description')
+        projects = profile.project_set.all()
+
+        context = {'profile':profile,'skills':skills,"projects":projects}
+        return render(request,"users/account.html", context)
+
+    @login_required(login_url="login")
+    def editAccount(request):
+        profile = request.user.profile
+        form = ProfileForm(instance=profile)
+
+        if request.method == "POST":
+            form = ProfileForm(request.POST,request.FILES,instance=profile)
+
+            if form.is_valid():
+                form.save()
+                messages.success(request,"Account Updated Successfully...")
+                return redirect("account")
+
+        context = {'form':form}
+        return render(request,"users/profile_form.html",context)
+
+    @login_required(login_url="login")
+    def addSkill(request):
+        profile = request.user.profile
+        form = SkillForm()
+
+        if request.method == "POST":
+            form = SkillForm(request.POST)
+            if form.is_valid():
+                skill = form.save(commit=False)
+                skill.owner = profile
+                skill.save()
+                messages.success(request,"New Skill Added")
+                return redirect("account")
+        
+        context = {'form':form}
+        return render(request,"users/skill_form.html",context)
+
+    @login_required(login_url="login")
+    def updateSkill(request, pk):
+        profile = request.user.profile
+        skill = profile.skill_set.get(id=pk)
+        form = SkillForm(instance=skill)
+
+        if request.method == "POST":
+            form = SkillForm(request.POST,instance=skill)
+            if form.is_valid():
+                form.save()
+                messages.success(request,"Skill Updated Successfully")
+                return redirect("account")
+        
+        context = {'form':form}
+        return render(request,"users/skill_form.html",context)
+
+    @login_required(login_url="login")
+    def deleteSkill(request, pk):
+        profile = request.user.profile
+        skill = profile.skill_set.get(id=pk)
+        if request.method == "POST":
+            skill.delete()
+            messages.success(request,"Skill Deleted Successfully")
+            return redirect("account")
+        
+        context = {"object":skill}
+        return render(request,"delete-template.html",context)
+
+    @login_required(login_url="login")
+    def inbox(request):
+        profile = request.user.profile
+        messageRequests = profile.messages.all()
+        unreadCount = messageRequests.filter(is_read=False).count() 
+        context = {"messages":messageRequests,"unread":unreadCount}
+        return render(request,"users/inbox.html", context)
+
+    ```
+
+    `inbox.html` - `templates` - `users` app
+
+    ```python
+    {% extends 'main.html' %}
+
+    {% block content %}
+    <!-- Main Section -->
+    <main class="inbox my-xl">
+    <div class="content-box">
+        <h3 class="inbox__title">New Messages(<span>{{unread}}</span>)</h3>
+        <ul class="messages">
+        {% for message in messages %}
+
+        {% if message.is_read == False %}
+            <li class="message message--unread">
+        {% else %}
+            <li class="message">
+        {% endif %}
+            <a href="message.html">
+            <span class="message__author">{{message.name}}</span>
+            <span class="message__subject">{{message.subject}}</span>
+            <span class="message__date">{{message.created}}</span>
+            </a>
+        </li>
+        {% endfor %}
+        </ul>
+    </div>
+    </main>
+    {% endblock content %}
+    ```
+
+    Once, we are done. This is how our Inbox would actually, look like.
+
+    ![](/imgs/Screenshot%202023-09-17%20at%205.07.09%20AM.png)
+
+    But, still we need to create a template to read the message. As, of now we can't read our messages. Also, unless we need to add the feature to mark the message as read and unread.
+
 </p>

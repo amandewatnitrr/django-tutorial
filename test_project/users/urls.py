@@ -15,4 +15,6 @@ urlpatterns = [
     path("add-skill/",views.addSkill, name="add-skill"),
     path("update-skill/<str:pk>/",views.updateSkill, name="update-skill"),
     path("delete-skill/<str:pk>/",views.deleteSkill, name="delete-skill"),
+
+    path("inbox/",views.inbox,name="inbox"),
 ]
