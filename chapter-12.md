@@ -1213,7 +1213,7 @@
 
     And, we are done with the `reviews`.
 
-# Messages 
+# Messages
 
 - For, this there's nothing to do with the projects app. So, we are not gonna touch it anyway. We will be dealing completely with the `users` app, for this. So, first let's move onto the `models.py` of `users` app, to make some changes. So, we start by making a new class `Message` here. Now, talking about `Message`, it's pretty obvious to guess 2 of the common attributes to expect here. First one, the `sender` and, other one the `receiver`. In order to do this add the `message` class model as shown below:
 
@@ -1553,7 +1553,7 @@
 
     `inbox.html` - `templates` - `users` app
 
-    ```python
+    ```Jinja
     {% extends 'main.html' %}
 
     {% block content %}
@@ -1569,7 +1569,7 @@
         {% else %}
             <li class="message">
         {% endif %}
-            <a href="message.html">
+            <a href="{% url "message" message.id %}">
             <span class="message__author">{{message.name}}</span>
             <span class="message__subject">{{message.subject}}</span>
             <span class="message__date">{{message.created}}</span>
@@ -1586,6 +1586,877 @@
 
     ![](/imgs/Screenshot%202023-09-17%20at%205.07.09%20AM.png)
 
-    But, still we need to create a template to read the message. As, of now we can't read our messages. Also, unless we need to add the feature to mark the message as read and unread.
+    But, still we need to create a template to read the message. As, of now we can't read our messages. Also, unless we need to add the feature to mark the message as read and unread. So, we need a new template file for our `message`.
+
+    `message.html` - `templates` - `users` app
+
+    ```Jinja
+    {% extends 'main.html' %}
+
+    {% block content %}
+    <!-- Main Section -->
+    <main class="messagePage my-xl">
+        <div class="content-box">
+        <div class="message">
+            <a class="backButton" href="{% url "inbox" %}"><i class="im im-angle-left"></i></a>
+            <h2 class="message__subject">{{message.subject}}</h4>
+            <a href="profile.html" class="message__author">{{message.name}}</a>
+            <p class="message__date">{{message.created}}</p>
+            <div class="message__body">
+                {{message.body|linebreaksbr}}
+            </div>
+        </div>
+        </div>
+    </main>
+    {% endblock content %}
+    ```
+
+    Add this to `views.py` within `users` app.
+
+    `views.py` - `users` app
+
+    ```python
+    @login_required(login_url="login")
+    def viewMessage(request,pk):
+        profile = request.user.profile
+        message = profile.messages.get(id=pk)
+        if message.is_read == False:
+            message.is_read = True
+            message.save()
+        context = {"message":message}
+        return render(request,"users/message.html", context)
+    ```
+
+    `urls.py` - `users` app
+
+    ```python
+    from django.urls import path
+    from . import views
+
+    urlpatterns = [
+        path("login/", views.loginUser, name="login"),
+        path("logout/", views.logoutUser, name="logout"),
+        path("signup/", views.signupUser, name="signup"),
+
+        path("", views.profiles, name="profiles"),
+        path("profile/<str:pk>/", views.userProfile, name="user-profile"),
+        
+        path("account/", views.userAccount, name="account"),
+        path("edit-account/", views.editAccount, name="edit-account"),
+
+        path("add-skill/",views.addSkill, name="add-skill"),
+        path("update-skill/<str:pk>/",views.updateSkill, name="update-skill"),
+        path("delete-skill/<str:pk>/",views.deleteSkill, name="delete-skill"),
+
+        path("inbox/",views.inbox,name="inbox"),
+        path("message/<str:pk>/",views.viewMessage,name="message"),
+    ]
+
+    ```
+
+    Once, done we can read the messages that we have received on our account. And, it would look something like this.
+
+    ![](/imgs/Screenshot%202023-09-17%20at%208.00.41%20AM.png)
+
+    Now, we are donw with all these stuff. We can read the messages that we have received from other users. But, theres still one issue that we still need to resolve, is that we can't send messages to others yet. Also, if you right now have a look at your own profile, you can send a message to your ownself as well, which doesn't make sense. But anyways, we will do this up at the end, we will first startup with the form to send messages to others.
+
+    So, let's first startup witth a template for the `message_form.html` in the `users` app - `templates`.
+
+    `message_form.html` - `users` - `templates`
+
+    ```Jinja
+    {% extends "main.html" %}
+
+    {% block content %}
+    <!-- Main Section -->
+    <main class="formPage my-xl">
+        <div class="content-box">
+            <div class="formWrapper">
+                <a class="backButton" href="{% url "user-profile" recipient.id %}"><i class="im im-angle-left"></i></a>
+                <br>
+
+                <form class="form" method="POST">
+                    {% csrf_token %}
+                    <!-- Input:Text -->
+                    <div class="form__field">
+                        <label for="formInput#text">Text Field: </label>
+                        <input class="input input--text" id="formInput#text" type="text" name="text"
+                            placeholder="Enter text" />
+                    </div>
+                    <input class="btn btn--sub btn--lg  my-md" type="submit" value="Submit" />
+                </form>
+            </div>
+        </div>
+    </main>
+    {% endblock content %}
+    ```
+
+    We will make some changes later as well. But, keep this template here on hold. Now, move to `views.py` within the `users` app, and add this fucntion in there.
+
+    `views.py` - `users` app
+
+    ```python
+    def createMessage(request, pk):
+        recipient = Profile.objects.get(id=pk)
+        context = {"recipient":recipient}
+        return render(request,"users/message_form.html",context)
+    ```
+
+    Make changes to the `urls.py` for `users` app.
+
+    `urls.py` - `users` app
+
+    ```python
+    from django.urls import path
+    from . import views
+
+    urlpatterns = [
+        path("login/", views.loginUser, name="login"),
+        path("logout/", views.logoutUser, name="logout"),
+        path("signup/", views.signupUser, name="signup"),
+
+        path("", views.profiles, name="profiles"),
+        path("profile/<str:pk>/", views.userProfile, name="user-profile"),
+        
+        path("account/", views.userAccount, name="account"),
+        path("edit-account/", views.editAccount, name="edit-account"),
+
+        path("add-skill/",views.addSkill, name="add-skill"),
+        path("update-skill/<str:pk>/",views.updateSkill, name="update-skill"),
+        path("delete-skill/<str:pk>/",views.deleteSkill, name="delete-skill"),
+
+        path("inbox/",views.inbox,name="inbox"),
+        path("message/<str:pk>/",views.viewMessage,name="message"),
+        path("create-message/<str:pk>/",views.createMessage,name="create-message"),
+    ]
+    ```
+
+    Once, we are done with all this, we need to be careful of one thing that, a user must not be able to send message to his ownself, so we need to make some changes to the `user-profile.html` template within `users` app.
+
+    `user-profile.html` - `templates` - `users` app
+
+    ```Jinja
+    {% extends 'main.html' %}
+
+    {% block content %}
+
+    <!-- Main Section -->
+    <main class="profile my-md">
+        <div class="container">
+        <div class="layout">
+            <div class="column column--1of3">
+            <div class="card text-center">
+                <div class="card__body dev">
+                <img class="avatar avatar--xl" src="{{ profile.profile_image.url }}" />
+                <h2 class="dev__name">{{profile.name}}</h2>
+                <p class="dev__title">{{profile.short_intro}}</p>
+                <p class="dev__location">Based in {{profile.location}}</p>
+                <ul class="dev__social">
+                    {% if profile.social_github %}
+                    <li>
+                    <a title="Github" href="{{profile.social_github}}" target="_blank"><i class="fa-brands fa-github"></i></a>
+                    </li>
+                    {% endif %}
+                    {% if profile.social_twitter %}
+                    <li>
+                    <a title="Twitter" href="{{profile.social_twitter}}" target="_blank"><i class="fa-brands fa-twitter"></i></a>
+                    </li>
+                    {% endif %}
+                    {% if profile.social_linkedin %}
+                    <li>
+                    <a title="LinkedIn" href="{{profile.social_linkedin}}" target="_blank"><i class="fa-brands fa-linkedin"></i></a>
+                    </li>
+                    {% endif %}
+                    {% if profile.social_website %}
+                    <li>
+                    <a title="Website" href="{{profile.social_website}}" target="_blank"><i class="fa-solid fa-link"></i></a>
+                    </li>
+                    {% endif %}
+                </ul>
+                <a href="{% url "create-message" profile.id %}" class="btn btn--sub btn--lg">Send Message </a>
+                </div>
+            </div>
+            </div>
+            <div class="column column--2of3">
+            <div class="devInfo">
+                <h3 class="devInfo__title">About Me</h3>
+                <p class="devInfo__about">
+                {{profile.bio}}
+                </p>
+            </div>
+            <div class="devInfo">
+                <h3 class="devInfo__title">Skills</h3>
+                {% for skill in topskills %}
+                <div class="devInfo__skills">
+                    <div class="devSkill">
+                    <h4 class="devSkill__title">{{skill.name}}</h4>
+                    <p class="devSkill__info">
+                        {{skill.description}}
+                    </p>
+                    </div>
+                {% endfor %}
+                </div>
+                <div class="devInfo__otherSkills">
+                    {% for skill in profile.skill_set.all %}
+                    <span class="tag tag--pill tag--outline tag--lg">
+                    <small>{{skill}}</small>
+                    </span>
+                    {% endfor %}
+                </div>
+                </div>
+            </div>
+            <div class="devInfo">
+                <h3 class="devInfo__title">Projects</h3>
+                <div class="grid grid--two">
+
+                {% for project in profile.project_set.all %}
+                <div class="column">
+                    <div class="card project">
+                    <a href="{% url 'project' project.id %}" class="project">
+                        <img class="project__thumbnail" src="{{ project.featured_image.url }}" alt="project thumbnail" />
+                        <div class="card__body">
+                        <h3 class="project__title">{{project.title}}</h3>
+                        <p><a class="project__author" href="profile.html">By {{project.owner.name}}</a></p>
+                        <p class="project--rating">
+                            <span style="font-weight: bold;">{{project.vote_ratio}}%</span> Postitive
+                            Feedback ({{project.vote_total}} Vote{{project.vote_total|pluralize:"s"}})
+                        </p>
+                        <div class="project__tags">
+                            {% for tag in project.tags.all %}
+                            <span class="tag tag--pill tag--main">
+                            <small>{{tag}}</small>
+                            </span>
+                            {% endfor %}
+                        </div>
+                        </div>
+                    </a>
+                    </div>
+                </div>
+                {% endfor %}
+
+                </div>
+            </div>
+            </div>
+        </div>
+        </div>
+    </main>
+
+    {% endblock content %}
+    ```
+
+    Once, we are done. This is what it would look like:
+
+    ![](/imgs/Screenshot%202023-09-19%20at%203.38.02%20AM.png)
+
+- Now, let's continue making edits to the `forms.py` within `users` app, we do it by adding the below function to the file.
+
+    `forms.py` - `users` app
+
+    ```python
+    from django.forms import ModelForm, TextInput, URLInput
+    from django.contrib.auth.forms import UserCreationForm
+    from django.contrib.auth.models import User
+    from .models import Profile, Skill, Message
+
+
+
+    class CustomUserCreationForm(UserCreationForm):
+        class Meta:
+            model = User
+            fields = ['first_name','email','username','password1','password2']
+            labels = {
+                "first_name":"Name",
+            }
+
+        def __init__(self, *args, **kwargs):
+            super(CustomUserCreationForm, self).__init__(*args, **kwargs)
+
+            for name, field in self.fields.items():
+                field.widget.attrs.update({"class":"input"})
+
+    class ProfileForm(ModelForm):
+        class Meta:
+            model = Profile
+            fields = ['name', 'email', 'username',
+                    'location', 'bio', 'short_intro', 'profile_image',
+                    'social_github', 'social_linkedin', 'social_twitter','social_website']
+
+        def __init__(self, *args, **kwargs):
+            super(ProfileForm, self).__init__(*args, **kwargs)
+
+            for name, field in self.fields.items():
+                field.widget.attrs.update({'class': 'input'})
+
+    class SkillForm(ModelForm):
+        class Meta:
+            model = Skill
+            fields = '__all__'
+            exclude = ["owner"]
+
+        def __init__(self, *args, **kwargs):
+            super(SkillForm, self).__init__(*args, **kwargs)
+
+            for name, field in self.fields.items():
+                field.widget.attrs.update({'class': 'input'})
+
+    class MessageForm(ModelForm):
+
+        class Meta:
+            model = Message
+            fields = ["name", "email", "subject", "body"]
+
+        def __init__(self, *args, **kwargs):
+            super(MessageForm, self).__init__(*args, **kwargs)
+
+            for name, field in self.fields.items():
+                field.widget.attrs.update({'class': 'input'})
+    ```
+
+    Go back to the `views.py` file in `users` app.
+
+    `views.py` - `users` app
+
+    ```python
+    from django.shortcuts import redirect, render
+    from django.contrib.auth import login, authenticate, logout
+    from django.contrib.auth.decorators import login_required
+    from django.contrib import messages
+    from .forms import CustomUserCreationForm, ProfileForm, SkillForm, MessageForm
+    from django.contrib.auth.models import User
+    from .models import Profile, Message
+    from .utils import searchProfiles, paginateProfiles
+
+    # Create your views here.
+
+    def loginUser(request):
+        page = 'login'
+        context = {'page':page}
+        if request.user.is_authenticated:
+            return redirect("profiles")
+
+        if request.method == "POST":
+            username = request.POST["username"].lower()
+            password = request.POST["password"]
+
+            try:
+                user = User.objects.get(username=username)
+                # Checking if the username with given username exists in database orr not
+
+            except:
+                messages.error(request,"Username not found")
+
+            user = authenticate(request, username=username, password=password)
+            # The above command checks if the credentials given for the existing user is correct or not.
+
+            if user is not None:
+                login(request, user)
+                return redirect(request.GET['next'] if 'next' in request.GET else 'account')
+            else:
+                messages.error(request,"Username or Password Incorrect...")
+
+        return render(request, "users/login_register.html",context)
+
+
+    def logoutUser(request):
+        logout(request)
+        messages.success(request,"User Logged Out...")
+        return redirect("login")
+
+    def signupUser(request):
+        page = 'signup'
+        form = CustomUserCreationForm()
+        if request.method == "POST":
+            form = CustomUserCreationForm(request.POST)
+            if form.is_valid():
+                print("User Creation Initiated..")
+                user = form.save(commit=False) # Here we hold a single instance of the form
+                user.username = user.username.lower()
+                print(user)
+                user.save()
+                messages.success(request,"User Account Created")
+
+                login(request, user)
+                return redirect("edit-account")
+
+        context = {'page':page,'form':form}
+        return render(request, "users/login_register.html", context)
+
+
+    def profiles(request):
+        profiles, search_query = searchProfiles(request) 
+        custom_range, profiles =  paginateProfiles(request, profiles, 3)
+        context = {"profiles":profiles,'search_query':search_query,'range':custom_range}
+        return render(request, "users/profiles.html",context)
+
+    def userProfile(request, pk):
+        profile = Profile.objects.get(id=pk)
+
+        topskills = profile.skill_set.exclude(description__exact="")
+        otherskills = profile.skill_set.filter(description="")
+
+        context = {'profile':profile,'topskills':topskills,"otherskills":otherskills}
+        return render(request, "users/user-profile.html",context)
+
+    @login_required(login_url="login")
+    def userAccount(request):
+        profile = request.user.profile
+        skills = profile.skill_set.all().order_by('-description')
+        projects = profile.project_set.all()
+
+        context = {'profile':profile,'skills':skills,"projects":projects}
+        return render(request,"users/account.html", context)
+
+    @login_required(login_url="login")
+    def editAccount(request):
+        profile = request.user.profile
+        form = ProfileForm(instance=profile)
+
+        if request.method == "POST":
+            form = ProfileForm(request.POST,request.FILES,instance=profile)
+
+            if form.is_valid():
+                form.save()
+                messages.success(request,"Account Updated Successfully...")
+                return redirect("account")
+
+        context = {'form':form}
+        return render(request,"users/profile_form.html",context)
+
+    @login_required(login_url="login")
+    def addSkill(request):
+        profile = request.user.profile
+        form = SkillForm()
+
+        if request.method == "POST":
+            form = SkillForm(request.POST)
+            if form.is_valid():
+                skill = form.save(commit=False)
+                skill.owner = profile
+                skill.save()
+                messages.success(request,"New Skill Added")
+                return redirect("account")
+        
+        context = {'form':form}
+        return render(request,"users/skill_form.html",context)
+
+    @login_required(login_url="login")
+    def updateSkill(request, pk):
+        profile = request.user.profile
+        skill = profile.skill_set.get(id=pk)
+        form = SkillForm(instance=skill)
+
+        if request.method == "POST":
+            form = SkillForm(request.POST,instance=skill)
+            if form.is_valid():
+                form.save()
+                messages.success(request,"Skill Updated Successfully")
+                return redirect("account")
+        
+        context = {'form':form}
+        return render(request,"users/skill_form.html",context)
+
+    @login_required(login_url="login")
+    def deleteSkill(request, pk):
+        profile = request.user.profile
+        skill = profile.skill_set.get(id=pk)
+        if request.method == "POST":
+            skill.delete()
+            messages.success(request,"Skill Deleted Successfully")
+            return redirect("account")
+        
+        context = {"object":skill}
+        return render(request,"delete-template.html",context)
+
+    @login_required(login_url="login")
+    def inbox(request):
+        profile = request.user.profile
+        messageRequests = profile.messages.all()
+        unreadCount = messageRequests.filter(is_read=False).count() 
+        context = {"messages":messageRequests,"unread":unreadCount}
+        return render(request,"users/inbox.html", context)
+
+    @login_required(login_url="login")
+    def viewMessage(request,pk):
+        profile = request.user.profile
+        message = profile.messages.get(id=pk)
+        if message.is_read == False:
+            message.is_read = True
+            message.save()
+        context = {"message":message}
+        return render(request,"users/message.html", context)
+
+    def createMessage(request, pk):
+        recipient = Profile.objects.get(id=pk)
+        form = MessageForm()
+        context = {"recipient":recipient, "form":form}
+        return render(request,"users/message_form.html",context)
+    ```
+
+    Now, we need to make some changes back again to the `message_form.html` in `users` app. Cause, we don't need to fill in some categories of input like name and mail if the sender is already logged in.
+
+    `message_form.html` - `templates` - `users` app
+
+    ```Jinja
+    {% extends "main.html" %}
+
+    {% block content %}
+    <!-- Main Section -->
+    <main class="formPage my-xl">
+        <div class="content-box">
+            <div class="formWrapper">
+                <a class="backButton" href="{% url "user-profile" recipient.id %}"><i class="im im-angle-left"></i></a>
+                <br>
+
+                <form class="form" method="POST">
+                    {% csrf_token %}
+
+                    {% if request.user.is_authenticated == False %}
+                        {% for field in form %}
+                        <div class="form__field">
+                            <label for="formInput#text">{{field.label}}</label>
+                            {{field}}
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        
+                    <div class="form__field">
+                            <label for="formInput#text">{{form.subject.label}}</label>
+                            {{form.subject}}
+                        </div>
+
+                        <div class="form__field">
+                            <label for="formInput#text">{{form.body.label}}</label>
+                            {{form.body}}
+                        </div>
+
+                    {% endif %}
+
+                    <input class="btn btn--sub btn--lg  my-md" type="submit" value="Submit" />
+                </form>
+            </div>
+        </div>
+    </main>
+    {% endblock content %}
+    ```
+
+    Now, we are ready, just need to make some few changes to the `views.py` inside `users` app.
+
+    `views.py` - `users` app
+
+    ```python
+    from django.shortcuts import redirect, render
+    from django.contrib.auth import login, authenticate, logout
+    from django.contrib.auth.decorators import login_required
+    from django.contrib import messages
+    from .forms import CustomUserCreationForm, ProfileForm, SkillForm, MessageForm
+    from django.contrib.auth.models import User
+    from .models import Profile, Message
+    from .utils import searchProfiles, paginateProfiles
+
+    # Create your views here.
+
+    def loginUser(request):
+        page = 'login'
+        context = {'page':page}
+        if request.user.is_authenticated:
+            return redirect("profiles")
+
+        if request.method == "POST":
+            username = request.POST["username"].lower()
+            password = request.POST["password"]
+
+            try:
+                user = User.objects.get(username=username)
+                # Checking if the username with given username exists in database orr not
+
+            except:
+                messages.error(request,"Username not found")
+
+            user = authenticate(request, username=username, password=password)
+            # The above command checks if the credentials given for the existing user is correct or not.
+
+            if user is not None:
+                login(request, user)
+                return redirect(request.GET['next'] if 'next' in request.GET else 'account')
+            else:
+                messages.error(request,"Username or Password Incorrect...")
+
+        return render(request, "users/login_register.html",context)
+
+
+    def logoutUser(request):
+        logout(request)
+        messages.success(request,"User Logged Out...")
+        return redirect("login")
+
+    def signupUser(request):
+        page = 'signup'
+        form = CustomUserCreationForm()
+        if request.method == "POST":
+            form = CustomUserCreationForm(request.POST)
+            if form.is_valid():
+                print("User Creation Initiated..")
+                user = form.save(commit=False) # Here we hold a single instance of the form
+                user.username = user.username.lower()
+                print(user)
+                user.save()
+                messages.success(request,"User Account Created")
+
+                login(request, user)
+                return redirect("edit-account")
+
+        context = {'page':page,'form':form}
+        return render(request, "users/login_register.html", context)
+
+
+    def profiles(request):
+        profiles, search_query = searchProfiles(request) 
+        custom_range, profiles =  paginateProfiles(request, profiles, 3)
+        context = {"profiles":profiles,'search_query':search_query,'range':custom_range}
+        return render(request, "users/profiles.html",context)
+
+    def userProfile(request, pk):
+        profile = Profile.objects.get(id=pk)
+
+        topskills = profile.skill_set.exclude(description__exact="")
+        otherskills = profile.skill_set.filter(description="")
+
+        context = {'profile':profile,'topskills':topskills,"otherskills":otherskills}
+        return render(request, "users/user-profile.html",context)
+
+    @login_required(login_url="login")
+    def userAccount(request):
+        profile = request.user.profile
+        skills = profile.skill_set.all().order_by('-description')
+        projects = profile.project_set.all()
+
+        context = {'profile':profile,'skills':skills,"projects":projects}
+        return render(request,"users/account.html", context)
+
+    @login_required(login_url="login")
+    def editAccount(request):
+        profile = request.user.profile
+        form = ProfileForm(instance=profile)
+
+        if request.method == "POST":
+            form = ProfileForm(request.POST,request.FILES,instance=profile)
+
+            if form.is_valid():
+                form.save()
+                messages.success(request,"Account Updated Successfully...")
+                return redirect("account")
+
+        context = {'form':form}
+        return render(request,"users/profile_form.html",context)
+
+    @login_required(login_url="login")
+    def addSkill(request):
+        profile = request.user.profile
+        form = SkillForm()
+
+        if request.method == "POST":
+            form = SkillForm(request.POST)
+            if form.is_valid():
+                skill = form.save(commit=False)
+                skill.owner = profile
+                skill.save()
+                messages.success(request,"New Skill Added")
+                return redirect("account")
+        
+        context = {'form':form}
+        return render(request,"users/skill_form.html",context)
+
+    @login_required(login_url="login")
+    def updateSkill(request, pk):
+        profile = request.user.profile
+        skill = profile.skill_set.get(id=pk)
+        form = SkillForm(instance=skill)
+
+        if request.method == "POST":
+            form = SkillForm(request.POST,instance=skill)
+            if form.is_valid():
+                form.save()
+                messages.success(request,"Skill Updated Successfully")
+                return redirect("account")
+        
+        context = {'form':form}
+        return render(request,"users/skill_form.html",context)
+
+    @login_required(login_url="login")
+    def deleteSkill(request, pk):
+        profile = request.user.profile
+        skill = profile.skill_set.get(id=pk)
+        if request.method == "POST":
+            skill.delete()
+            messages.success(request,"Skill Deleted Successfully")
+            return redirect("account")
+        
+        context = {"object":skill}
+        return render(request,"delete-template.html",context)
+
+    @login_required(login_url="login")
+    def inbox(request):
+        profile = request.user.profile
+        messageRequests = profile.messages.all()
+        unreadCount = messageRequests.filter(is_read=False).count() 
+        context = {"messages":messageRequests,"unread":unreadCount}
+        return render(request,"users/inbox.html", context)
+
+    @login_required(login_url="login")
+    def viewMessage(request,pk):
+        profile = request.user.profile
+        message = profile.messages.get(id=pk)
+        if message.is_read == False:
+            message.is_read = True
+            message.save()
+        context = {"message":message}
+        return render(request,"users/message.html", context)
+
+    def createMessage(request, pk):
+        recipient = Profile.objects.get(id=pk)
+        form = MessageForm()
+
+        try:
+            sender = request.user.profile
+            
+        except:
+            sender = None
+
+        if request.method == 'POST':
+            form = MessageForm(request.POST)
+            if form.is_valid():
+                message = form.save(commit=False)
+                message.sender = sender
+                message.reciever = recipient
+                message.recipient = Profile.objects.get(id=pk)
+
+                if sender:
+                    message.name = sender.name
+                    message.email = sender.email
+                message.save()
+
+                messages.success(request, 'Your message was successfully sent!')
+                return redirect('user-profile', pk=recipient.id)
+
+        context = {'recipient': recipient, 'form': form}
+        return render(request, 'users/message_form.html', context)
+    ```
+
+    And, now we are ready to send, recieve and read the messages. Now, a very small change we need to make, that the user shouldn't be able to send a message to his ownselff, and for that we need to add a condition to `user-profile.html` in `users` app for that.
+
+    `user-profile.html` - `templates` - `users` app
+
+    ```Jinja
+    {% extends 'main.html' %}
+
+    {% block content %}
+
+    <!-- Main Section -->
+    <main class="profile my-md">
+        <div class="container">
+        <div class="layout">
+            <div class="column column--1of3">
+            <div class="card text-center">
+                <div class="card__body dev">
+                <img class="avatar avatar--xl" src="{{ profile.profile_image.url }}" />
+                <h2 class="dev__name">{{profile.name}}</h2>
+                <p class="dev__title">{{profile.short_intro}}</p>
+                <p class="dev__location">Based in {{profile.location}}</p>
+                <ul class="dev__social">
+                    {% if profile.social_github %}
+                    <li>
+                    <a title="Github" href="{{profile.social_github}}" target="_blank"><i class="fa-brands fa-github"></i></a>
+                    </li>
+                    {% endif %}
+                    {% if profile.social_twitter %}
+                    <li>
+                    <a title="Twitter" href="{{profile.social_twitter}}" target="_blank"><i class="fa-brands fa-twitter"></i></a>
+                    </li>
+                    {% endif %}
+                    {% if profile.social_linkedin %}
+                    <li>
+                    <a title="LinkedIn" href="{{profile.social_linkedin}}" target="_blank"><i class="fa-brands fa-linkedin"></i></a>
+                    </li>
+                    {% endif %}
+                    {% if profile.social_website %}
+                    <li>
+                    <a title="Website" href="{{profile.social_website}}" target="_blank"><i class="fa-solid fa-link"></i></a>
+                    </li>
+                    {% endif %}
+                </ul>
+                {% if request.user.profile.id != profile.id %}
+                <a href="{% url 'create-message' profile.id %}" class="btn btn--sub btn--lg">Send Message </a>
+                {% endif %}
+                </div>
+            </div>
+            </div>
+            <div class="column column--2of3">
+            <div class="devInfo">
+                <h3 class="devInfo__title">About Me</h3>
+                <p class="devInfo__about">
+                {{profile.bio}}
+                </p>
+            </div>
+            <div class="devInfo">
+                <h3 class="devInfo__title">Skills</h3>
+                {% for skill in topskills %}
+                <div class="devInfo__skills">
+                    <div class="devSkill">
+                    <h4 class="devSkill__title">{{skill.name}}</h4>
+                    <p class="devSkill__info">
+                        {{skill.description}}
+                    </p>
+                    </div>
+                {% endfor %}
+                </div>
+                <div class="devInfo__otherSkills">
+                    {% for skill in profile.skill_set.all %}
+                    <span class="tag tag--pill tag--outline tag--lg">
+                    <small>{{skill}}</small>
+                    </span>
+                    {% endfor %}
+                </div>
+                </div>
+            </div>
+            <div class="devInfo">
+                <h3 class="devInfo__title">Projects</h3>
+                <div class="grid grid--two">
+
+                {% for project in profile.project_set.all %}
+                <div class="column">
+                    <div class="card project">
+                    <a href="{% url 'project' project.id %}" class="project">
+                        <img class="project__thumbnail" src="{{ project.featured_image.url }}" alt="project thumbnail" />
+                        <div class="card__body">
+                        <h3 class="project__title">{{project.title}}</h3>
+                        <p><a class="project__author" href="profile.html">By {{project.owner.name}}</a></p>
+                        <p class="project--rating">
+                            <span style="font-weight: bold;">{{project.vote_ratio}}%</span> Postitive
+                            Feedback ({{project.vote_total}} Vote{{project.vote_total|pluralize:"s"}})
+                        </p>
+                        <div class="project__tags">
+                            {% for tag in project.tags.all %}
+                            <span class="tag tag--pill tag--main">
+                            <small>{{tag}}</small>
+                            </span>
+                            {% endfor %}
+                        </div>
+                        </div>
+                    </a>
+                    </div>
+                </div>
+                {% endfor %}
+
+                </div>
+            </div>
+            </div>
+        </div>
+        </div>
+    </main>
+
+    {% endblock content %}
+    ```
+
+    And that's it for this section of the tutorial.
 
 </p>
