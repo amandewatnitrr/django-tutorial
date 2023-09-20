@@ -212,6 +212,231 @@
 
     ![](/imgs/Screenshot%202023-09-19%20at%203.10.55%20PM.png)
 
+# Password Reset
 
+- Once, we are now able to send the emails. We can finally start working on the `Password Reset` Feature. Luckily, we don't need to much about this as most of the stuff is built-in in django. We just need to use some built-in views and simply connect those 2 URL Paths and, modify those. For this we will move to `urls.py` file in the `root`.
+
+    We will be adding 4 `urlpatterns`. And, will be using class based views, but instead of functions they are classes, and just need to be rendered out using `.as_view()` function.
+
+    The 4 paths will be:
+
+    1. User Submits email for reset - PasswordResetView.as_view()
+    2. Email Sent Message - PasswordResetDoneView.as_view()
+    3. Email with link and Instructions - PasswordResetConfirmView()
+    4. Password succesfully reset message - PasswordResetCompleteView.as_view()
+
+    `urls.py` - `root`
+
+    ```python
+    """test_project URL Configuration
+
+    The `urlpatterns` list routes URLs to views. For more information please see:
+        https://docs.djangoproject.com/en/4.1/topics/http/urls/
+    Examples:
+    Function views
+        1. Add an import:  from my_app import views
+        2. Add a URL to urlpatterns:  path('', views.home, name='home')
+    Class-based views
+        1. Add an import:  from other_app.views import Home
+        2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
+    Including another URLconf
+        1. Import the include() function: from django.urls import include, path
+        2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
+    """
+    from django.contrib import admin
+    from django.urls import path, include
+
+    from django.conf import settings
+    # 👆🏻 we want to have access to the setting.py file over here, because we have to connect to our media route and media url.
+    from django.conf.urls.static import static
+    # 👆🏻 So, we are importing static, which help us create urls for our static
+    from django.contrib.auth import views as auth_views
+
+    urlpatterns = [
+        path("admin/", admin.site.urls),
+        path("",include("projects.urls")),
+        path("users/",include("users.urls")), 
+        # Here we are importing the paths from the projects app that we created, there in we have a file urls.py which has the urls to the views.
+
+        path('reset_password/',auth_views.PasswordResetView.as_view(),name="reset_password"),
+        path('reset_password_sent/',auth_views.PasswordResetDoneView.as_view(),name="reset_password_sent"),
+        path('reset/<uidb64>/<token>/',auth_views.PasswordResetConfirmView.as_view(),name="reset_password_confirm"),
+        path('reset_password_complete/',auth_views.PasswordResetCompleteView.as_view(),name="reset_password_complete"),
+    ]
+
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    ```
+
+    Now, let's make changes to the templates to the `login_register.html` in `users` app.
+
+    `login_register.html` - `users` app
+
+    ```Jinja
+    {% extends 'main.html' %}
+    {% load static %}
+    {% block content %}
+
+    {% if page == 'signup' %}
+
+    <br><br><br>
+    <div class="auth">
+        <div class="card">
+            <div class="auth__header text-center">
+                <a href="/">
+                    <img src="{% static 'images/icon.svg' %}" alt="icon" />
+                </a>
+                <h3>Register an Account</h3>
+                <p>Create a new developer account</p>
+            </div>
+
+            <form method="POST" action="{% url 'signup' %}" class="form auth__form">
+                {% csrf_token %}
+
+                {% for field in form %}
+                <div class="form__field">
+                    <label for="formInput#text">{{field.label}}</label>
+                    {{field}}
+
+                    <!-- {% if field.help_text %}
+                    <small>{{field.help_text}}</small>
+                    {% endif %} -->
+
+                    {% for error in field.errors %}
+                    <p style="color: red;">{{error}}</p>
+                    {% endfor %}
+
+                </div>
+
+                {% endfor %}
+
+                <div class="auth__actions">
+                    <input class="btn btn--sub btn--lg" type="submit" value="Sign  In" />
+                </div>
+            </form>
+            <div class="auth__alternative">
+                <p>Already have an Account?</p>
+                <a href="{% url 'login' %}">Log In</a>
+            </div>
+        </div>
+    </div>
+
+    <br><br><br>    
+
+    {% else %}
+
+    <div class="auth">
+
+        <div class="card">
+
+            <div class="auth__header text-center">
+                <a href="/">
+                    <img src="{% static 'images/icon.svg' %}" alt="icon" />
+                </a>
+                <h3>Account Login</h3>
+                <p>Hello Developer, Welcome Back!</p>
+            </div>
+
+            <form action="" method="POST" class="form auth__form">
+                {% csrf_token %}
+                <!-- Input:Username -->
+                <div class="form__field">
+                    <label for="formInput#text">Username: </label>
+                    <input class="input input--text" id="formInput#text" type="text" name="username"
+                        placeholder="Enter your username..." />
+                </div>
+
+                <!-- Input:Password -->
+                <div class="form__field">
+                    <label for="formInput#password">Password: </label>
+                    <input class="input input--password" id="formInput#passowrd" type="password" name="password"
+                        placeholder="••••••••" />
+                </div>
+
+                <div class="auth__actions">
+                    <input class="btn btn--sub btn--lg" type="submit" value="Log In" />
+                    <a href="{% url 'reset_password' %}">Forget Password?</a>
+                </div>
+
+                <div class="auth__actions">
+                    <input class="btn btn--sub btn--lg" type="submit" value="Log In" />
+
+                </div>
+            </form>
+
+            <div class="auth__alternative">
+                <p>Don’t have an Account?</p>
+                <a href="{% url 'signup' %}">Sign Up</a>
+            </div>
+        </div>
+    </div>
+
+
+    {% endif %}
+
+
+
+
+    {% endblock content %}
+    ```
+
+    If, you open the page and via Incongnito Mode, click Forget password. You will see a page like this.
+
+    ![](/imgs/Screenshot%202023-09-20%20at%2011.49.43%20AM.png)
+
+    Once, you have submitted your mail id, you would see some thing like this and get a mail like this:
+
+    ![](/imgs/Screenshot%202023-09-20%20at%201.14.53%20PM.png)
+
+    ![](/imgs/Screenshot%202023-09-20%20at%201.26.36%20PM.png)
+
+    Now, the next thing we want to do is change the templates of these forms as, it doesn't look great from a user perspective. So, we will create some templates for this purpose in the `root` - `templates`. And, it should all work fine.
+
+    Once, you have done the above step, come back to `urls.py` in `users` app and make it as follows:
+
+    `urls.py` - `users` app
+
+    ```python
+    """test_project URL Configuration
+
+    The `urlpatterns` list routes URLs to views. For more information please see:
+        https://docs.djangoproject.com/en/4.1/topics/http/urls/
+    Examples:
+    Function views
+        1. Add an import:  from my_app import views
+        2. Add a URL to urlpatterns:  path('', views.home, name='home')
+    Class-based views
+        1. Add an import:  from other_app.views import Home
+        2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
+    Including another URLconf
+        1. Import the include() function: from django.urls import include, path
+        2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
+    """
+    from django.contrib import admin
+    from django.urls import path, include
+
+    from django.conf import settings
+    # 👆🏻 we want to have access to the setting.py file over here, because we have to connect to our media route and media url.
+    from django.conf.urls.static import static
+    # 👆🏻 So, we are importing static, which help us create urls for our static
+    from django.contrib.auth import views as auth_views
+
+    urlpatterns = [
+        path("admin/", admin.site.urls),
+        path("",include("projects.urls")),
+        path("users/",include("users.urls")), 
+        # Here we are importing the paths from the projects app that we created, there in we have a file urls.py which has the urls to the views.
+
+        path('reset_password/',auth_views.PasswordResetView.as_view(template_name="reset_password.html"),name="reset_password"),
+        path('reset_password_sent/',auth_views.PasswordResetDoneView.as_view(template_name="reset_password_sent.html"),name="password_reset_done"),
+        path('reset/<uidb64>/<token>/',auth_views.PasswordResetConfirmView.as_view(template_name="reset.html"),name="password_reset_confirm"),
+        path('reset_password_complete/',auth_views.PasswordResetCompleteView.as_view(template_name="reset_password_complete.html"),name="password_reset_complete"),
+    ]
+
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    ```
+
+    And now, over project is near ended.
 
 </p>
