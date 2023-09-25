@@ -14,8 +14,8 @@
 
 - Before you begin, make sure you have the following installed:
 
-Python [3.11.3]
-Django [4.1.7]
+  - Python [3.11.3]
+  - Django [4.1.7]
 
 ### Installation
 
