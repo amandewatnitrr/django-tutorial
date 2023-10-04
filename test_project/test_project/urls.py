@@ -25,7 +25,8 @@ from django.contrib.auth import views as auth_views
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("",include("projects.urls")),
-    path("users/",include("users.urls")), 
+    path("users/",include("users.urls")),
+    path("api/",include("api.urls")), 
     # Here we are importing the paths from the projects app that we created, there in we have a file urls.py which has the urls to the views.
 
     path('reset_password/',auth_views.PasswordResetView.as_view(template_name="reset_password.html"),name="reset_password"),
