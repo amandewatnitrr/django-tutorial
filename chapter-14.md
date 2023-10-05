@@ -290,7 +290,7 @@
     from rest_framework import serializers
     from projects.models import Project
 
-    class ProjectSerializar(serializers.ModelSerializer):
+    class ProjectSerializer(serializers.ModelSerializer):
         class Meta:
             model = Project
             fields = '__all__'
@@ -304,7 +304,7 @@
     from rest_framework.decorators import api_view
     from rest_framework.response import Response
     from projects.models import Project
-    from .serializers import ProjectSerializar
+    from .serializers import ProjectSerializer
 
     # Create your views here.
 
@@ -323,13 +323,13 @@
     @api_view(['GET'])
     def getProjects(request):
         projects = Project.objects.all()
-        serializer = ProjectSerializar(projects, many=True)
+        serializer = ProjectSerializer(projects, many=True)
         return Response(serializer.data)
 
     @api_view(['GET'])
     def getProject(request,pk):
         project = Project.objects.get(id=pk)
-        serializer = ProjectSerializar(project, many=False)
+        serializer = ProjectSerializer(project, many=False)
         return Response(serializer.data)
     ```
 
@@ -353,3 +353,111 @@
     Here is the project api for a specific project:
 
     ![](/imgs/Screenshot%202023-10-05%20at%205.01.36 AM.png)
+
+# Nested Serializers and Serializer Method
+
+- Right now we want to work on serializer relationships and serializer method fields. So, if you look carefully to the `GET Project` page above, we are only getting the owner ID, rather we want the owner object nested. For the tags, we don't want to get the tag IDs, we wish to be able to access the tag objects. So, let's move to `serializers.py` file.
+
+    `serializers.py` - `api` app
+
+    ```python
+    from rest_framework import serializers
+    from projects.models import Project, Tag
+    from users.models import Profile
+
+    class ProfileSerailizer(serializers.ModelSerializer):
+        class Meta:
+            model = Profile
+            fields = '__all__'
+
+    class TagSerailizer(serializers.ModelSerializer):
+        class Meta:
+            model = Tag
+            fields = '__all__'
+
+
+    class ProjectSerializer(serializers.ModelSerializer):
+        owner = ProfileSerailizer(many=False)
+        class Meta:
+            model = Project
+            fields = '__all__'
+    ```
+
+    Once, we have done this. What happens is now we get the complete owner object associated with that project. And, now we can actually nest relationships.
+
+    ![](/imgs/Screenshot%202023-10-06%20at%204.32.32 AM.png)
+
+    And, similary for the tags:
+
+    `serializers.py` - `api` app
+
+    ```python
+    from rest_framework import serializers
+    from projects.models import Project, Tag
+    from users.models import Profile
+
+    class ProfileSerailizer(serializers.ModelSerializer):
+        class Meta:
+            model = Profile
+            fields = '__all__'
+
+    class TagSerailizer(serializers.ModelSerializer):
+        class Meta:
+            model = Tag
+            fields = '__all__'
+
+
+    class ProjectSerializer(serializers.ModelSerializer):
+        owner = ProfileSerailizer(many=False)
+        tags = TagSerailizer(many=True)
+        class Meta:
+            model = Project
+            fields = '__all__'
+    ```
+
+    And, now if you refresh you will see the tag objects as well.
+
+    ![](/imgs/Screenshot%202023-10-06%20at%204.37.11 AM.png)
+
+    Right now, we can't see reviews here as they are a child element. So, we need to make use of something called Nested Serializer and Serializer Method.
+
+    `serializers.py` - `api` app
+
+    ```python
+    from rest_framework import serializers
+    from projects.models import Project, Tag, Review
+    from users.models import Profile
+
+    class ProfileSerailizer(serializers.ModelSerializer):
+        class Meta:
+            model = Profile
+            fields = '__all__'
+
+    class TagSerailizer(serializers.ModelSerializer):
+        class Meta:
+            model = Tag
+            fields = '__all__'
+
+    class ReviewSerailizer(serializers.ModelSerializer):
+        class Meta:
+            model = Review
+            fields = '__all__'
+
+
+    class ProjectSerializer(serializers.ModelSerializer):
+        owner = ProfileSerailizer(many=False)
+        tags = TagSerailizer(many=True)
+        reviews = serializers.SerializerMethodField()
+        class Meta:
+            model = Project
+            fields = '__all__'
+
+        def get_reviews(self, obj):
+            reviews = obj.review_set.all()
+            serializer = ReviewSerailizer(reviews, many=True)
+            return serializer.data
+    ```
+
+    And, now if you check it out, here we see review object associated with the project clearly visible.
+
+    ![](/imgs/Screenshot%202023-10-06%20at%204.47.19 AM.png)

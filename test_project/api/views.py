@@ -3,7 +3,7 @@ from django.http import JsonResponse
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from projects.models import Project
-from .serializers import ProjectSerializar
+from .serializers import ProjectSerializer
 
 # Create your views here.
 
@@ -22,11 +22,11 @@ def getRoutes(request):
 @api_view(['GET'])
 def getProjects(request):
     projects = Project.objects.all()
-    serializer = ProjectSerializar(projects, many=True)
+    serializer = ProjectSerializer(projects, many=True)
     return Response(serializer.data)
 
 @api_view(['GET'])
 def getProject(request,pk):
     project = Project.objects.get(id=pk)
-    serializer = ProjectSerializar(project, many=False)
+    serializer = ProjectSerializer(project, many=False)
     return Response(serializer.data)
