@@ -8,7 +8,6 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
     strategy:
       max-parallel: 4
@@ -24,7 +23,9 @@ jobs:
     - name: Install Dependencies
       run: |
         python -m pip install --upgrade pip
+        cd test-project  # Navigate to the project folder
         pip install -r requirements.txt
     - name: Run Tests
       run: |
+        cd test-project  # Navigate to the project folder
         python manage.py test
