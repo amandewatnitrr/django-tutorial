@@ -477,3 +477,14 @@
 - If we want to fetch a specific project, do it as:
 
     ![](/imgs/Screenshot%202023-10-06%20at%205.22.06 AM.png)
+
+
+# Authentication with JSON Web Tokens
+
+- Django by-default uses Session based authentication. So, if we inspect our website, and see here, in cookies, we will see a `sessionid`. On login, django creates a `sessionid` in database. We have an entire database folder for sessionids.
+
+- On every single request, this `sessionid` is retrieved by the backend, and we ever hit an endpoint that's supposed to be restricted only to logged in users, django will check this id and make sure that the user is allowed to be there.
+
+- Now for APIs, they are completely different. We could use session base authentication, but we will use JSON Web tokens. And the reasons why we are going to use them:
+
+  - Depending on how you setup your API, where our API and our backend, or your server or your frontend are completely seprate applications. So, e may have one hosted on one server and one on the another, and because they are completely seprate, we need a token to pass along b/w 2 apllications.
