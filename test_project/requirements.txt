@@ -1,5 +1,4 @@
 absl-py==1.4.0
-accelerate @ git+https://github.com/huggingface/accelerate.git@d5894ab4992878c191ed4c9fdb53b35ad2c0e628
 aiohttp==3.8.4
 aiosignal==1.3.1
 aniso8601==9.0.1
@@ -31,7 +30,6 @@ distlib==0.3.6
 Django==4.1.7
 einops==0.6.1
 elastic-transport==8.4.0
-en-core-web-sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.6.0/en_core_web_sm-3.6.0-py3-none-any.whl#sha256=83276fc78a70045627144786b52e1f2728ad5e29e5e43916ec37ea9c26a11212
 evaluate==0.4.0
 executing==1.2.0
 filelock==3.9.0
@@ -63,7 +61,6 @@ jupyterlab-widgets==3.0.8
 keras==2.13.1rc0
 kiwisolver==1.4.4
 langcodes==3.3.0
-libclang==16.0.0
 Markdown==3.4.3
 MarkupSafe==2.1.2
 multidict==6.0.4
