@@ -129,10 +129,6 @@ statsmodels==0.14.0
 sympy==1.11.1
 tensorboard==2.13.0
 tensorboard-data-server==0.7.0
-tensorflow==2.13.0rc0
-tensorflow-estimator==2.13.0rc0
-tensorflow-macos==2.13.0rc0
-tensorflow-metal==1.0.1
 termcolor==2.3.0
 thinc==8.1.10
 tiktoken==0.5.1
