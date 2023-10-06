@@ -133,7 +133,6 @@ termcolor==2.3.0
 thinc==8.1.10
 tiktoken==0.5.1
 tokenizers==0.13.3
-torch==2.0.1
 torchdata==0.6.1
 torchtext==0.15.2
 tornado==6.3.2
