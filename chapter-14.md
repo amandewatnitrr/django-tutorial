@@ -461,3 +461,19 @@
     And, now if you check it out, here we see review object associated with the project clearly visible.
 
     ![](/imgs/Screenshot%202023-10-06%20at%204.47.19 AM.png)
+
+# Setting up Postman
+
+- In order, to get started working with our POST Requests, and testing out the APIs, it's better to start setting up postman for our project.
+
+- So, we have created a New Collection by the name of `DevSearch`. And, set some of the basic `Variable`s, as follows:
+
+    ![](/imgs/Screenshot%202023-10-06%20at%205.19.25 AM.png)
+
+- We can fetch all the projects as:
+
+    ![](/imgs/Screenshot%202023-10-06%20at%205.21.07 AM.png)
+
+- If we want to fetch a specific project, do it as:
+
+    ![](/imgs/Screenshot%202023-10-06%20at%205.22.06 AM.png)
