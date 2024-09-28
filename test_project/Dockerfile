@@ -10,11 +10,11 @@ WORKDIR /usr/src/app
 
 # Create a non-root user with an arbitrary UID (10014 is used here)
 # Comment when not in use [Only used for Choreo]
-RUN useradd -m -u 10014 appuser
+RUN useradd -m -u 10001 appuser
 
 # Switch to the non-root user
 # Comment when not in use [Only used for Choreo]
-USER appuser
+USER 10001
 
 # Copy the requirements.txt file to the working directory
 COPY ./requirement_overall.txt .
