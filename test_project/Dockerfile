@@ -17,6 +17,7 @@ RUN useradd -m -u 10001 appuser
 USER 10001
 
 # Copy the requirements.txt file to the working directory
+# Will be "./requirement_overall.txt" if running on local
 COPY ./test_project/requirement_overall.txt .
 
 # Install dependencies
