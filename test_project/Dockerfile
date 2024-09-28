@@ -17,7 +17,7 @@ RUN useradd -m -u 10001 appuser
 USER 10001
 
 # Copy the requirements.txt file to the working directory
-COPY ./requirement_overall.txt .
+COPY ./test_project/requirement_overall.txt .
 
 # Install dependencies
 RUN pip install -r requirement_overall.txt
